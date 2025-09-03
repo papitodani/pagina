@@ -2,294 +2,82 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Carrusel Orbis - Vista Integrada</title>
+  <title>Carrusel Orbis - Ventanas Popup</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
+      margin: 0; 
       font-family: ui-sans-serif, system-ui, Arial, sans-serif;
-      background: #0b0f14;
+      background: linear-gradient(135deg, #0b0f14, #1a2433);
       color: white;
-      height: 100vh;
-      overflow: hidden;
-    }
-    
-    /* Panel de control superior */
-    .control-panel {
-      background: linear-gradient(135deg, rgba(18,24,33,0.95), rgba(11,15,20,0.98));
-      border-bottom: 2px solid rgba(91,179,255,0.3);
-      padding: 12px 20px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 70px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      backdrop-filter: blur(10px);
-      position: relative;
-      z-index: 1000;
-    }
-
-    /* Información de página */
-    .page-info {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .page-number {
-      background: linear-gradient(135deg, #5fb3ff, #338bdf);
-      color: #07121f;
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-weight: bold;
-      font-size: 16px;
-      min-width: 80px;
-      text-align: center;
-    }
-
-    .page-name {
-      color: #e5eefc;
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .page-url {
-      color: #93a3b8;
-      font-size: 12px;
-      max-width: 300px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    /* Controles de navegación */
-    .nav-controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .nav-btn {
-      background: linear-gradient(180deg, #6b7280, #4b5563);
-      border: none;
-      border-radius: 8px;
-      color: white;
-      padding: 10px 15px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .nav-btn:hover {
-      transform: translateY(-2px);
-      background: linear-gradient(180deg, #7c3aed, #5b21b6);
-      box-shadow: 0 4px 15px rgba(124,58,237,0.4);
-    }
-
-    .nav-btn.next {
-      background: linear-gradient(180deg, #5fb3ff, #338bdf);
-      color: #07121f;
-    }
-
-    .nav-btn.next:hover {
-      background: linear-gradient(180deg, #22c55e, #16a34a);
-    }
-
-    /* Countdown */
-    .countdown-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(255,255,255,0.05);
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .countdown-label {
-      font-size: 12px;
-      color: #93a3b8;
-    }
-
-    .countdown {
-      font-size: 16px;
-      font-weight: bold;
-      color: #f59e0b;
-      min-width: 35px;
-      text-align: center;
-    }
-
-    .countdown.warning {
-      color: #ef4444;
-    }
-
-    .countdown.good {
-      color: #22c55e;
-    }
-
-    /* Indicadores de página */
-    .page-indicators {
-      display: flex;
-      gap: 6px;
-      margin: 0 15px;
-    }
-
-    .indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.3);
-      transition: all 0.3s;
-    }
-
-    .indicator.active {
-      background: #5fb3ff;
-      width: 20px;
-      border-radius: 4px;
-    }
-
-    /* Contenedor del iframe */
-    .iframe-container {
-      height: calc(100vh - 70px);
-      width: 100%;
-      position: relative;
-      background: #000;
-    }
-
-    .page-iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: white;
-    }
-
-    /* Loading overlay */
-    .loading-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(11,15,20,0.9);
-      display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      color: white;
-      z-index: 100;
+      min-height: 100vh;
+      text-align: center;
     }
-
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(91,179,255,0.2);
-      border-top: 4px solid #5fb3ff;
+    
+    .launcher {
+      background: rgba(255,255,255,0.05);
+      padding: 40px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      max-width: 400px;
+    }
+    
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #e5eefc;
+    }
+    
+    .status {
+      font-size: 16px;
+      color: #93a3b8;
+      margin-bottom: 15px;
+    }
+    
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.2);
+      border-top: 3px solid #5fb3ff;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin-bottom: 20px;
+      margin-left: 10px;
     }
-
+    
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
-    .loading-text {
-      font-size: 16px;
+    
+    .note {
+      background: rgba(91,179,255,0.1);
+      border: 1px solid rgba(91,179,255,0.3);
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 14px;
       color: #93a3b8;
-    }
-
-    /* Estado paused */
-    .paused {
-      background: linear-gradient(180deg, #f59e0b, #d97706) !important;
-      color: white !important;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .control-panel {
-        padding: 8px 10px;
-        height: 60px;
-      }
-
-      .page-name {
-        font-size: 14px;
-      }
-
-      .page-url {
-        display: none;
-      }
-
-      .nav-btn {
-        padding: 8px 10px;
-        font-size: 12px;
-      }
-
-      .iframe-container {
-        height: calc(100vh - 60px);
-      }
     }
   </style>
 </head>
 <body>
-  <!-- Panel de Control Superior -->
-  <div class="control-panel">
-    <div class="page-info">
-      <div class="page-number" id="pageNumber">1 / 4</div>
-      <div>
-        <div class="page-name" id="pageName">Cargando...</div>
-        <div class="page-url" id="pageUrl">...</div>
-      </div>
-    </div>
-
-    <div class="page-indicators" id="indicators">
-      <div class="indicator active"></div>
-      <div class="indicator"></div>
-      <div class="indicator"></div>
-      <div class="indicator"></div>
-    </div>
-
-    <div class="nav-controls">
-      <button class="nav-btn" id="prevBtn">
-        ◀ Anterior
-      </button>
-      
-      <div class="countdown-container">
-        <span class="countdown-label">Próximo en:</span>
-        <span class="countdown" id="countdown">60s</span>
-      </div>
-
-      <button class="nav-btn next" id="nextBtn">
-        Siguiente ▶
-      </button>
-
-      <button class="nav-btn" id="pauseBtn">
-        ⏸ Pausar
-      </button>
-    </div>
-  </div>
-
-  <!-- Contenedor del Iframe -->
-  <div class="iframe-container">
-    <iframe class="page-iframe" id="mainIframe" src="about:blank"></iframe>
-    
-    <div class="loading-overlay" id="loadingOverlay">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">Cargando página...</div>
+  <div class="launcher">
+    <h1>🌟 Carrusel Orbis</h1>
+    <div class="status">Iniciando automáticamente...</div>
+    <div class="loading"></div>
+    <div class="note">
+      💡 <strong>Solución Mixed Content:</strong><br>
+      Usando ventanas popup para evitar restricciones HTTPS/HTTP en GitHub Pages
     </div>
   </div>
 
   <script>
-    // Configuración de páginas
+    // Configuración de páginas - URLs originales (funcionan en popup)
     const PAGES = [
       {
         name: 'SAP Fiori Launchpad',
@@ -309,172 +97,221 @@
       }
     ];
 
-    // Estado del carrusel
+    // Variables del carrusel
+    let currentWindow = null;
     let currentPageIndex = 0;
-    let countdownValue = 60;
     let countdownTimer = null;
     let autoAdvanceTimer = null;
-    let isPaused = false;
+    let countdownValue = 60;
 
-    // Elementos del DOM
-    let mainIframe = null;
-    let loadingOverlay = null;
-    let pageNumber = null;
-    let pageName = null;
-    let pageUrl = null;
-    let countdown = null;
-    let prevBtn = null;
-    let nextBtn = null;
-    let pauseBtn = null;
-    let indicators = null;
-
-    // Inicializar cuando se carga la página
+    // Iniciar automáticamente
     document.addEventListener('DOMContentLoaded', function() {
-      initializeCarousel();
+      setTimeout(startCarousel, 2000);
     });
 
-    function initializeCarousel() {
-      // Obtener referencias a elementos del DOM
-      mainIframe = document.getElementById('mainIframe');
-      loadingOverlay = document.getElementById('loadingOverlay');
-      pageNumber = document.getElementById('pageNumber');
-      pageName = document.getElementById('pageName');
-      pageUrl = document.getElementById('pageUrl');
-      countdown = document.getElementById('countdown');
-      prevBtn = document.getElementById('prevBtn');
-      nextBtn = document.getElementById('nextBtn');
-      pauseBtn = document.getElementById('pauseBtn');
-      indicators = document.getElementById('indicators');
-
-      // Configurar event listeners
-      prevBtn.addEventListener('click', goToPreviousPage);
-      nextBtn.addEventListener('click', goToNextPage);
-      pauseBtn.addEventListener('click', togglePause);
-
-      // Configurar evento de carga del iframe
-      mainIframe.addEventListener('load', function() {
-        hideLoading();
-      });
-
-      mainIframe.addEventListener('error', function() {
-        hideLoading();
-        console.log('Error cargando la página');
-      });
-
-      // Comenzar el carrusel
-      loadCurrentPage();
-      startAutoAdvance();
+    function startCarousel() {
+      openCurrentPage();
+      setTimeout(startCountdown, 3000);
     }
 
-    function loadCurrentPage() {
+    function openCurrentPage() {
+      // Cerrar ventana anterior si existe
+      if (currentWindow && !currentWindow.closed) {
+        currentWindow.close();
+      }
+
       const page = PAGES[currentPageIndex];
+      console.log('🚀 Abriendo:', page.name);
       
-      showLoading();
-      updatePageInfo();
-      updateIndicators();
-      
-      // Cargar la página en el iframe
-      mainIframe.src = page.url;
+      // Abrir ventana en pantalla completa
+      currentWindow = window.open(
+        page.url,
+        'carrusel_' + currentPageIndex,
+        'width=' + screen.availWidth + ',height=' + screen.availHeight + ',left=0,top=0,fullscreen=yes,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes'
+      );
+
+      if (!currentWindow) {
+        alert('⚠️ Por favor permite ventanas emergentes para que funcione el carrusel');
+        return false;
+      }
+
+      // Añadir controles flotantes después de que cargue
+      setTimeout(addFloatingControls, 2000);
+      return true;
     }
 
-    function updatePageInfo() {
-      const page = PAGES[currentPageIndex];
-      pageNumber.textContent = `${currentPageIndex + 1} / ${PAGES.length}`;
-      pageName.textContent = page.name;
-      pageUrl.textContent = page.url;
-    }
+    function addFloatingControls() {
+      if (!currentWindow || currentWindow.closed) return;
 
-    function updateIndicators() {
-      const indicatorElements = indicators.children;
-      for (let i = 0; i < indicatorElements.length; i++) {
-        if (i === currentPageIndex) {
-          indicatorElements[i].classList.add('active');
-        } else {
-          indicatorElements[i].classList.remove('active');
-        }
+      try {
+        // Crear controles flotantes
+        const controlsHTML = `
+          <div id="orbisControls" style="
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            z-index: 999999;
+            background: rgba(0,0,0,0.9); 
+            color: white; 
+            padding: 15px; 
+            border-radius: 10px; 
+            font-family: Arial, sans-serif;
+            border: 2px solid #5fb3ff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            min-width: 200px;
+          ">
+            <div style="text-align: center; margin-bottom: 10px;">
+              <div style="color: #5fb3ff; font-weight: bold; margin-bottom: 5px;">
+                Página ${currentPageIndex + 1}/${PAGES.length}
+              </div>
+              <div style="font-size: 12px; color: #ccc;">
+                ${PAGES[currentPageIndex].name}
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+              <button onclick="window.opener.goToPreviousPage()" style="
+                flex: 1; padding: 8px; background: #6b7280; color: white; 
+                border: none; border-radius: 5px; cursor: pointer; font-size: 12px;
+              ">◀ Anterior</button>
+              
+              <button onclick="window.opener.goToNextPage()" style="
+                flex: 1; padding: 8px; background: #5fb3ff; color: #000; 
+                border: none; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold;
+              ">Siguiente ▶</button>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 10px;">
+              <div id="orbisCountdown" style="
+                background: rgba(255,255,255,0.1); 
+                padding: 5px 10px; 
+                border-radius: 5px; 
+                font-size: 14px; 
+                font-weight: bold;
+                color: #f59e0b;
+              ">60s</div>
+            </div>
+            
+            <div style="display: flex; gap: 5px;">
+              <button onclick="window.opener.togglePause()" style="
+                flex: 1; padding: 6px; background: #f59e0b; color: white; 
+                border: none; border-radius: 5px; cursor: pointer; font-size: 11px;
+              ">⏸ Pausar</button>
+              
+              <button onclick="if(confirm('¿Cerrar carrusel?')) { window.opener.stopCarousel(); window.close(); }" style="
+                flex: 1; padding: 6px; background: #ef4444; color: white; 
+                border: none; border-radius: 5px; cursor: pointer; font-size: 11px;
+              ">✕ Cerrar</button>
+            </div>
+          </div>
+        `;
+
+        // Remover controles existentes
+        const existing = currentWindow.document.getElementById('orbisControls');
+        if (existing) existing.remove();
+
+        // Añadir nuevos controles
+        const div = currentWindow.document.createElement('div');
+        div.innerHTML = controlsHTML;
+        currentWindow.document.body.appendChild(div.firstElementChild);
+
+        console.log('✅ Controles flotantes añadidos');
+      } catch (e) {
+        console.warn('⚠️ No se pudieron añadir controles (página de origen cruzado):', e.message);
       }
     }
 
-    function showLoading() {
-      loadingOverlay.style.display = 'flex';
-    }
+    function updateFloatingCountdown(value) {
+      if (!currentWindow || currentWindow.closed) return;
 
-    function hideLoading() {
-      loadingOverlay.style.display = 'none';
+      try {
+        const countdownElement = currentWindow.document.getElementById('orbisCountdown');
+        if (countdownElement) {
+          countdownElement.textContent = value + 's';
+          
+          // Cambiar color según tiempo restante
+          if (value <= 10) {
+            countdownElement.style.color = '#ef4444';
+            countdownElement.style.background = 'rgba(239,68,68,0.2)';
+          } else if (value > 45) {
+            countdownElement.style.color = '#22c55e';
+            countdownElement.style.background = 'rgba(34,197,94,0.2)';
+          } else {
+            countdownElement.style.color = '#f59e0b';
+            countdownElement.style.background = 'rgba(255,255,255,0.1)';
+          }
+        }
+      } catch (e) {
+        // Silently fail para páginas cross-origin
+      }
     }
 
     function goToNextPage() {
       currentPageIndex = (currentPageIndex + 1) % PAGES.length;
-      loadCurrentPage();
+      openCurrentPage();
       resetCountdown();
     }
 
     function goToPreviousPage() {
       currentPageIndex = currentPageIndex === 0 ? PAGES.length - 1 : currentPageIndex - 1;
-      loadCurrentPage();
+      openCurrentPage();
       resetCountdown();
     }
 
     function togglePause() {
-      isPaused = !isPaused;
-      
-      if (isPaused) {
-        pauseBtn.textContent = '▶ Reanudar';
-        pauseBtn.classList.add('paused');
+      if (countdownTimer) {
+        // Pausar
         clearInterval(countdownTimer);
         clearTimeout(autoAdvanceTimer);
+        countdownTimer = null;
+        console.log('⏸️ Carrusel pausado');
       } else {
-        pauseBtn.textContent = '⏸ Pausar';
-        pauseBtn.classList.remove('paused');
-        startAutoAdvance();
+        // Reanudar
+        startCountdown();
+        console.log('▶️ Carrusel reanudado');
       }
     }
 
-    function startAutoAdvance() {
-      if (isPaused) return;
-      
+    function startCountdown() {
+      if (countdownTimer) return; // Ya está corriendo
+
       countdownValue = 60;
-      updateCountdownDisplay();
-      
-      // Timer para el countdown
+      updateFloatingCountdown(countdownValue);
+
+      // Timer del countdown
       countdownTimer = setInterval(function() {
-        if (!isPaused) {
-          countdownValue--;
-          updateCountdownDisplay();
-        }
-      }, 1000);
-      
-      // Timer para avanzar automáticamente
-      autoAdvanceTimer = setTimeout(function() {
-        if (!isPaused) {
+        countdownValue--;
+        updateFloatingCountdown(countdownValue);
+        
+        if (countdownValue <= 0) {
           goToNextPage();
         }
+      }, 1000);
+
+      // Timer de auto-avance
+      autoAdvanceTimer = setTimeout(function() {
+        goToNextPage();
       }, 60000);
     }
 
     function resetCountdown() {
       clearInterval(countdownTimer);
       clearTimeout(autoAdvanceTimer);
-      startAutoAdvance();
+      countdownTimer = null;
+      setTimeout(startCountdown, 3000);
     }
 
-    function updateCountdownDisplay() {
-      countdown.textContent = countdownValue + 's';
-      
-      // Cambiar color basado en el tiempo restante
-      countdown.className = 'countdown';
-      if (countdownValue <= 10) {
-        countdown.classList.add('warning');
-      } else if (countdownValue > 45) {
-        countdown.classList.add('good');
-      }
-    }
-
-    // Limpiar timers al cerrar la página
-    window.addEventListener('beforeunload', function() {
+    function stopCarousel() {
       clearInterval(countdownTimer);
       clearTimeout(autoAdvanceTimer);
-    });
+      if (currentWindow && !currentWindow.closed) {
+        currentWindow.close();
+      }
+      console.log('🛑 Carrusel detenido');
+    }
+
+    // Limpiar al cerrar la ventana principal
+    window.addEventListener('beforeunload', stopCarousel);
   </script>
 </body>
 </html>
