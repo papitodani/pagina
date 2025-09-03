@@ -2,90 +2,313 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Carrusel Orbis - Ventanas Popup</title>
+  <title>Carrusel Orbis - Vista Integrada</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      margin: 0; 
       font-family: ui-sans-serif, system-ui, Arial, sans-serif;
-      background: linear-gradient(135deg, #0b0f14, #1a2433);
+      background: #0b0f14;
       color: white;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    /* Panel de control superior */
+    .control-panel {
+      background: linear-gradient(135deg, rgba(18,24,33,0.95), rgba(11,15,20,0.98));
+      border-bottom: 2px solid rgba(91,179,255,0.3);
+      padding: 12px 20px;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      min-height: 100vh;
+      height: 70px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1000;
+    }
+
+    /* Información de página */
+    .page-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .page-number {
+      background: linear-gradient(135deg, #5fb3ff, #338bdf);
+      color: #07121f;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 16px;
+      min-width: 80px;
       text-align: center;
     }
-    
-    .launcher {
-      background: rgba(255,255,255,0.05);
-      padding: 40px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(10px);
-      max-width: 400px;
-    }
-    
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
+
+    .page-name {
       color: #e5eefc;
+      font-size: 18px;
+      font-weight: 600;
     }
-    
-    .status {
-      font-size: 16px;
+
+    .page-url {
       color: #93a3b8;
-      margin-bottom: 15px;
+      font-size: 12px;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    
-    .loading {
-      display: inline-block;
+
+    /* Controles de navegación */
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      background: linear-gradient(180deg, #6b7280, #4b5563);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(180deg, #7c3aed, #5b21b6);
+      box-shadow: 0 4px 15px rgba(124,58,237,0.4);
+    }
+
+    .nav-btn.next {
+      background: linear-gradient(180deg, #5fb3ff, #338bdf);
+      color: #07121f;
+    }
+
+    .nav-btn.next:hover {
+      background: linear-gradient(180deg, #22c55e, #16a34a);
+    }
+
+    /* Countdown */
+    .countdown-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.05);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .countdown-label {
+      font-size: 12px;
+      color: #93a3b8;
+    }
+
+    .countdown {
+      font-size: 16px;
+      font-weight: bold;
+      color: #f59e0b;
+      min-width: 35px;
+      text-align: center;
+    }
+
+    .countdown.warning {
+      color: #ef4444;
+    }
+
+    .countdown.good {
+      color: #22c55e;
+    }
+
+    /* Indicadores de página */
+    .page-indicators {
+      display: flex;
+      gap: 6px;
+      margin: 0 15px;
+    }
+
+    .indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transition: all 0.3s;
+    }
+
+    .indicator.active {
+      background: #5fb3ff;
       width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,0.2);
-      border-top: 3px solid #5fb3ff;
+      border-radius: 4px;
+    }
+
+    /* Contenedor del iframe */
+    .iframe-container {
+      height: calc(100vh - 70px);
+      width: 100%;
+      position: relative;
+      background: #000;
+    }
+
+    .page-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11,15,20,0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      z-index: 100;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(91,179,255,0.2);
+      border-top: 4px solid #5fb3ff;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin-left: 10px;
+      margin-bottom: 20px;
     }
-    
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    
-    .note {
-      background: rgba(91,179,255,0.1);
-      border: 1px solid rgba(91,179,255,0.3);
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 20px;
-      font-size: 14px;
+
+    .loading-text {
+      font-size: 16px;
       color: #93a3b8;
+    }
+
+    /* Estado paused */
+    .paused {
+      background: linear-gradient(180deg, #f59e0b, #d97706) !important;
+      color: white !important;
+    }
+
+    /* Error message */
+    .error-message {
+      padding: 20px;
+      text-align: center;
+      color: #ef4444;
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px;
+      margin: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .control-panel {
+        padding: 8px 10px;
+        height: 60px;
+      }
+
+      .page-name {
+        font-size: 14px;
+      }
+
+      .page-url {
+        display: none;
+      }
+
+      .nav-btn {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+
+      .iframe-container {
+        height: calc(100vh - 60px);
+      }
     }
   </style>
 </head>
 <body>
-  <div class="launcher">
-    <h1>🌟 Carrusel Orbis</h1>
-    <div class="status">Iniciando automáticamente...</div>
-    <div class="loading"></div>
-    <div class="note">
-      💡 <strong>Solución Mixed Content:</strong><br>
-      Usando ventanas popup para evitar restricciones HTTPS/HTTP en GitHub Pages
+  <!-- Panel de Control Superior -->
+  <div class="control-panel">
+    <div class="page-info">
+      <div class="page-number" id="pageNumber">1 / 4</div>
+      <div>
+        <div class="page-name" id="pageName">Cargando...</div>
+        <div class="page-url" id="pageUrl">...</div>
+      </div>
+    </div>
+
+    <div class="page-indicators" id="indicators">
+      <div class="indicator active"></div>
+      <div class="indicator"></div>
+      <div class="indicator"></div>
+      <div class="indicator"></div>
+    </div>
+
+    <div class="nav-controls">
+      <button class="nav-btn" id="prevBtn">
+        ◀ Anterior
+      </button>
+      
+      <div class="countdown-container">
+        <span class="countdown-label">Próximo en:</span>
+        <span class="countdown" id="countdown">60s</span>
+      </div>
+
+      <button class="nav-btn next" id="nextBtn">
+        Siguiente ▶
+      </button>
+
+      <button class="nav-btn" id="pauseBtn">
+        ⏸ Pausar
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenedor del Iframe -->
+  <div class="iframe-container">
+    <iframe class="page-iframe" id="mainIframe" src="about:blank"></iframe>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Cargando página...</div>
     </div>
   </div>
 
   <script>
-    // Configuración de páginas - URLs originales (funcionan en popup)
+    // OPCIÓN: Usar URLs HTTPS que permitan iframe (para evitar Mixed Content)
     const PAGES = [
       {
-        name: 'SAP Fiori Launchpad',
-        url: 'http://confiablepro.serviacero.com/WS/01/37/WS01.37.09D.aspx'
+        name: 'SAP Fiori (Prueba)',
+        url: 'http://confiablepro.serviacero.com/WS/01/37/WS01.37.09D.aspx' // Reemplaza con tus URLs HTTPS reales
       },
       {
-        name: 'SAP GUI Web',  
-        url: 'http://confiable.serviacero.com/RE/01/37/RE01.37-10.aspx'
+        name: 'Dashboard Web',  
+        url: 'http://confiable.serviacero.com/RE/01/37/RE01.37-10.aspx' // Reemplaza con tus URLs HTTPS reales
       },
       {
         name: 'Web Intelligence',
@@ -97,221 +320,230 @@
       }
     ];
 
-    // Variables del carrusel
-    let currentWindow = null;
+    // Estado del carrusel
     let currentPageIndex = 0;
+    let countdownValue = 60;
     let countdownTimer = null;
     let autoAdvanceTimer = null;
-    let countdownValue = 60;
+    let isPaused = false;
 
-    // Iniciar automáticamente
+    // Elementos del DOM
+    let mainIframe = null;
+    let loadingOverlay = null;
+    let pageNumber = null;
+    let pageName = null;
+    let pageUrl = null;
+    let countdown = null;
+    let prevBtn = null;
+    let nextBtn = null;
+    let pauseBtn = null;
+    let indicators = null;
+
+    // Inicializar cuando se carga la página
     document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(startCarousel, 2000);
+      initializeCarousel();
     });
 
-    function startCarousel() {
-      openCurrentPage();
-      setTimeout(startCountdown, 3000);
-    }
+    function initializeCarousel() {
+      // Obtener referencias a elementos del DOM
+      mainIframe = document.getElementById('mainIframe');
+      loadingOverlay = document.getElementById('loadingOverlay');
+      pageNumber = document.getElementById('pageNumber');
+      pageName = document.getElementById('pageName');
+      pageUrl = document.getElementById('pageUrl');
+      countdown = document.getElementById('countdown');
+      prevBtn = document.getElementById('prevBtn');
+      nextBtn = document.getElementById('nextBtn');
+      pauseBtn = document.getElementById('pauseBtn');
+      indicators = document.getElementById('indicators');
 
-    function openCurrentPage() {
-      // Cerrar ventana anterior si existe
-      if (currentWindow && !currentWindow.closed) {
-        currentWindow.close();
-      }
+      // Configurar event listeners
+      prevBtn.addEventListener('click', goToPreviousPage);
+      nextBtn.addEventListener('click', goToNextPage);
+      pauseBtn.addEventListener('click', togglePause);
 
-      const page = PAGES[currentPageIndex];
-      console.log('🚀 Abriendo:', page.name);
+      // Configurar evento de carga del iframe
+      mainIframe.addEventListener('load', function() {
+        hideLoading();
+        console.log('✅ Página cargada:', PAGES[currentPageIndex].name);
+      });
+
+      mainIframe.addEventListener('error', function(e) {
+        console.error('❌ Error cargando página:', e);
+        showErrorMessage('Error de conexión - Mixed Content bloqueado');
+      });
+
+      // Timeout para detectar páginas que no cargan (CORS/Mixed Content)
+      let loadTimeout;
       
-      // Abrir ventana en pantalla completa
-      currentWindow = window.open(
-        page.url,
-        'carrusel_' + currentPageIndex,
-        'width=' + screen.availWidth + ',height=' + screen.availHeight + ',left=0,top=0,fullscreen=yes,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes'
-      );
-
-      if (!currentWindow) {
-        alert('⚠️ Por favor permite ventanas emergentes para que funcione el carrusel');
-        return false;
-      }
-
-      // Añadir controles flotantes después de que cargue
-      setTimeout(addFloatingControls, 2000);
-      return true;
-    }
-
-    function addFloatingControls() {
-      if (!currentWindow || currentWindow.closed) return;
-
-      try {
-        // Crear controles flotantes
-        const controlsHTML = `
-          <div id="orbisControls" style="
-            position: fixed; 
-            top: 20px; 
-            right: 20px; 
-            z-index: 999999;
-            background: rgba(0,0,0,0.9); 
-            color: white; 
-            padding: 15px; 
-            border-radius: 10px; 
-            font-family: Arial, sans-serif;
-            border: 2px solid #5fb3ff;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            min-width: 200px;
-          ">
-            <div style="text-align: center; margin-bottom: 10px;">
-              <div style="color: #5fb3ff; font-weight: bold; margin-bottom: 5px;">
-                Página ${currentPageIndex + 1}/${PAGES.length}
-              </div>
-              <div style="font-size: 12px; color: #ccc;">
-                ${PAGES[currentPageIndex].name}
-              </div>
-            </div>
-            
-            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-              <button onclick="window.opener.goToPreviousPage()" style="
-                flex: 1; padding: 8px; background: #6b7280; color: white; 
-                border: none; border-radius: 5px; cursor: pointer; font-size: 12px;
-              ">◀ Anterior</button>
-              
-              <button onclick="window.opener.goToNextPage()" style="
-                flex: 1; padding: 8px; background: #5fb3ff; color: #000; 
-                border: none; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold;
-              ">Siguiente ▶</button>
-            </div>
-            
-            <div style="text-align: center; margin-bottom: 10px;">
-              <div id="orbisCountdown" style="
-                background: rgba(255,255,255,0.1); 
-                padding: 5px 10px; 
-                border-radius: 5px; 
-                font-size: 14px; 
-                font-weight: bold;
-                color: #f59e0b;
-              ">60s</div>
-            </div>
-            
-            <div style="display: flex; gap: 5px;">
-              <button onclick="window.opener.togglePause()" style="
-                flex: 1; padding: 6px; background: #f59e0b; color: white; 
-                border: none; border-radius: 5px; cursor: pointer; font-size: 11px;
-              ">⏸ Pausar</button>
-              
-              <button onclick="if(confirm('¿Cerrar carrusel?')) { window.opener.stopCarousel(); window.close(); }" style="
-                flex: 1; padding: 6px; background: #ef4444; color: white; 
-                border: none; border-radius: 5px; cursor: pointer; font-size: 11px;
-              ">✕ Cerrar</button>
-            </div>
-          </div>
-        `;
-
-        // Remover controles existentes
-        const existing = currentWindow.document.getElementById('orbisControls');
-        if (existing) existing.remove();
-
-        // Añadir nuevos controles
-        const div = currentWindow.document.createElement('div');
-        div.innerHTML = controlsHTML;
-        currentWindow.document.body.appendChild(div.firstElementChild);
-
-        console.log('✅ Controles flotantes añadidos');
-      } catch (e) {
-        console.warn('⚠️ No se pudieron añadir controles (página de origen cruzado):', e.message);
-      }
-    }
-
-    function updateFloatingCountdown(value) {
-      if (!currentWindow || currentWindow.closed) return;
-
-      try {
-        const countdownElement = currentWindow.document.getElementById('orbisCountdown');
-        if (countdownElement) {
-          countdownElement.textContent = value + 's';
-          
-          // Cambiar color según tiempo restante
-          if (value <= 10) {
-            countdownElement.style.color = '#ef4444';
-            countdownElement.style.background = 'rgba(239,68,68,0.2)';
-          } else if (value > 45) {
-            countdownElement.style.color = '#22c55e';
-            countdownElement.style.background = 'rgba(34,197,94,0.2)';
-          } else {
-            countdownElement.style.color = '#f59e0b';
-            countdownElement.style.background = 'rgba(255,255,255,0.1)';
+      function checkLoadStatus() {
+        loadTimeout = setTimeout(function() {
+          if (loadingOverlay.style.display !== 'none') {
+            console.warn('⚠️ Página bloqueada por Mixed Content o CORS');
+            showErrorMessage('Esta página no se puede cargar en iframe (Mixed Content o X-Frame-Options)');
           }
-        }
-      } catch (e) {
-        // Silently fail para páginas cross-origin
+        }, 8000);
       }
+
+      // Limpiar timeout cuando la página se carga
+      mainIframe.addEventListener('load', function() {
+        clearTimeout(loadTimeout);
+      });
+
+      // Comenzar el carrusel
+      loadCurrentPage();
+      startAutoAdvance();
+    }
+
+    function loadCurrentPage() {
+      const page = PAGES[currentPageIndex];
+      
+      showLoading();
+      updatePageInfo();
+      updateIndicators();
+      
+      // Cargar la página en el iframe
+      mainIframe.src = page.url;
+      
+      // Timeout para detectar páginas bloqueadas
+      setTimeout(function() {
+        if (loadingOverlay.style.display !== 'none') {
+          console.warn('⚠️ Página puede estar bloqueada');
+          showErrorMessage('Página bloqueada - Revisa Mixed Content');
+        }
+      }, 8000);
+    }
+
+    function updatePageInfo() {
+      const page = PAGES[currentPageIndex];
+      pageNumber.textContent = `${currentPageIndex + 1} / ${PAGES.length}`;
+      pageName.textContent = page.name;
+      pageUrl.textContent = page.url;
+    }
+
+    function updateIndicators() {
+      const indicatorElements = indicators.children;
+      for (let i = 0; i < indicatorElements.length; i++) {
+        if (i === currentPageIndex) {
+          indicatorElements[i].classList.add('active');
+        } else {
+          indicatorElements[i].classList.remove('active');
+        }
+      }
+    }
+
+    function showLoading() {
+      loadingOverlay.innerHTML = `
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Cargando página...</div>
+      `;
+      loadingOverlay.style.display = 'flex';
+    }
+
+    function hideLoading() {
+      loadingOverlay.style.display = 'none';
+    }
+
+    function showErrorMessage(message) {
+      loadingOverlay.innerHTML = `
+        <div style="text-align: center; max-width: 500px;">
+          <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+          <div style="font-size: 18px; color: #ef4444; margin-bottom: 10px;">Error de carga</div>
+          <div style="font-size: 14px; color: #93a3b8; margin-bottom: 20px; line-height: 1.5;">
+            ${message}
+          </div>
+          <div style="margin-bottom: 15px; padding: 10px; background: rgba(239,68,68,0.1); border-radius: 5px; font-size: 12px;">
+            <strong>Solución:</strong> Las URLs HTTP no funcionan en GitHub Pages (HTTPS). 
+            Necesitas URLs HTTPS que permitan iframe.
+          </div>
+          <button onclick="goToNextPage()" style="
+            background: #5fb3ff; color: white; padding: 10px 20px; 
+            border: none; border-radius: 5px; cursor: pointer; margin: 5px;
+          ">Siguiente página ▶</button>
+          <button onclick="window.location.reload()" style="
+            background: #6b7280; color: white; padding: 10px 20px; 
+            border: none; border-radius: 5px; cursor: pointer; margin: 5px;
+          ">🔄 Reintentar</button>
+        </div>
+      `;
+      loadingOverlay.style.display = 'flex';
     }
 
     function goToNextPage() {
       currentPageIndex = (currentPageIndex + 1) % PAGES.length;
-      openCurrentPage();
+      loadCurrentPage();
       resetCountdown();
     }
 
     function goToPreviousPage() {
       currentPageIndex = currentPageIndex === 0 ? PAGES.length - 1 : currentPageIndex - 1;
-      openCurrentPage();
+      loadCurrentPage();
       resetCountdown();
     }
 
     function togglePause() {
-      if (countdownTimer) {
-        // Pausar
+      isPaused = !isPaused;
+      
+      if (isPaused) {
+        pauseBtn.textContent = '▶ Reanudar';
+        pauseBtn.classList.add('paused');
         clearInterval(countdownTimer);
         clearTimeout(autoAdvanceTimer);
-        countdownTimer = null;
-        console.log('⏸️ Carrusel pausado');
       } else {
-        // Reanudar
-        startCountdown();
-        console.log('▶️ Carrusel reanudado');
+        pauseBtn.textContent = '⏸ Pausar';
+        pauseBtn.classList.remove('paused');
+        startAutoAdvance();
       }
     }
 
-    function startCountdown() {
-      if (countdownTimer) return; // Ya está corriendo
-
+    function startAutoAdvance() {
+      if (isPaused) return;
+      
       countdownValue = 60;
-      updateFloatingCountdown(countdownValue);
-
-      // Timer del countdown
+      updateCountdownDisplay();
+      
+      // Timer para el countdown
       countdownTimer = setInterval(function() {
-        countdownValue--;
-        updateFloatingCountdown(countdownValue);
-        
-        if (countdownValue <= 0) {
-          goToNextPage();
+        if (!isPaused) {
+          countdownValue--;
+          updateCountdownDisplay();
         }
       }, 1000);
-
-      // Timer de auto-avance
+      
+      // Timer para avanzar automáticamente
       autoAdvanceTimer = setTimeout(function() {
-        goToNextPage();
+        if (!isPaused) {
+          goToNextPage();
+        }
       }, 60000);
     }
 
     function resetCountdown() {
       clearInterval(countdownTimer);
       clearTimeout(autoAdvanceTimer);
-      countdownTimer = null;
-      setTimeout(startCountdown, 3000);
+      startAutoAdvance();
     }
 
-    function stopCarousel() {
+    function updateCountdownDisplay() {
+      countdown.textContent = countdownValue + 's';
+      
+      // Cambiar color basado en el tiempo restante
+      countdown.className = 'countdown';
+      if (countdownValue <= 10) {
+        countdown.classList.add('warning');
+      } else if (countdownValue > 45) {
+        countdown.classList.add('good');
+      }
+    }
+
+    // Limpiar timers al cerrar la página
+    window.addEventListener('beforeunload', function() {
       clearInterval(countdownTimer);
       clearTimeout(autoAdvanceTimer);
-      if (currentWindow && !currentWindow.closed) {
-        currentWindow.close();
-      }
-      console.log('🛑 Carrusel detenido');
-    }
+    });
 
-    // Limpiar al cerrar la ventana principal
-    window.addEventListener('beforeunload', stopCarousel);
+    console.log('🚀 Carrusel Orbis iniciado - Versión iframe integrada');
+    console.log('⚠️ Nota: URLs HTTP serán bloqueadas por Mixed Content en GitHub Pages');
   </script>
 </body>
 </html>
