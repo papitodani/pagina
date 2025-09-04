@@ -2,566 +2,548 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Carousel 4 páginas (1 min c/u) con refresh al mostrar</title>
+  <title>Carrusel Orbis - Vista Integrada</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root {
-      --bg: #0b0f14;
-      --card: #121821;
-      --muted: #93a3b8;
-      --accent: #4a    ;
-      --warn: #f59e0b;
-      --err: #ef4444;
-      --radius: 16      // Disparamos inmediatamente el primer "mostrar + refresh" solo si no es popup mode
-      if (!POPUP_MODE) {
-        currentIndex = -1;
-        next();
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: ui-sans-serif, system-ui, Arial, sans-serif;
+      background: #0b0f14;
+      color: white;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    /* Panel de control superior */
+    .control-panel {
+      background: linear-gradient(135deg, rgba(18,24,33,0.95), rgba(11,15,20,0.98));
+      border-bottom: 2px solid rgba(91,179,255,0.3);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1000;
+    }
+
+    /* Información de página */
+    .page-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .page-number {
+      background: linear-gradient(135deg, #5fb3ff, #338bdf);
+      color: #07121f;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 16px;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .page-name {
+      color: #e5eefc;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .page-url {
+      color: #93a3b8;
+      font-size: 12px;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Controles de navegación */
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      background: linear-gradient(180deg, #6b7280, #4b5563);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(180deg, #7c3aed, #5b21b6);
+      box-shadow: 0 4px 15px rgba(124,58,237,0.4);
+    }
+
+    .nav-btn.next {
+      background: linear-gradient(180deg, #5fb3ff, #338bdf);
+      color: #07121f;
+    }
+
+    .nav-btn.next:hover {
+      background: linear-gradient(180deg, #22c55e, #16a34a);
+    }
+
+    /* Countdown */
+    .countdown-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.05);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .countdown-label {
+      font-size: 12px;
+      color: #93a3b8;
+    }
+
+    .countdown {
+      font-size: 16px;
+      font-weight: bold;
+      color: #f59e0b;
+      min-width: 35px;
+      text-align: center;
+    }
+
+    .countdown.warning {
+      color: #ef4444;
+    }
+
+    .countdown.good {
+      color: #22c55e;
+    }
+
+    /* Indicadores de página */
+    .page-indicators {
+      display: flex;
+      gap: 6px;
+      margin: 0 15px;
+    }
+
+    .indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transition: all 0.3s;
+    }
+
+    .indicator.active {
+      background: #5fb3ff;
+      width: 20px;
+      border-radius: 4px;
+    }
+
+    /* Contenedor del iframe */
+    .iframe-container {
+      height: calc(100vh - 70px);
+      width: 100%;
+      position: relative;
+      background: #000;
+    }
+
+    .page-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11,15,20,0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      z-index: 100;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(91,179,255,0.2);
+      border-top: 4px solid #5fb3ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 16px;
+      color: #93a3b8;
+    }
+
+    /* Estado paused */
+    .paused {
+      background: linear-gradient(180deg, #f59e0b, #d97706) !important;
+      color: white !important;
+    }
+
+    /* Error message */
+    .error-message {
+      padding: 20px;
+      text-align: center;
+      color: #ef4444;
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px;
+      margin: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .control-panel {
+        padding: 8px 10px;
+        height: 60px;
+      }
+
+      .page-name {
+        font-size: 14px;
+      }
+
+      .page-url {
+        display: none;
+      }
+
+      .nav-btn {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+
+      .iframe-container {
+        height: calc(100vh - 60px);
       }
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, "Noto Sans", "Segoe UI";
-      background: radial-gradient(1200px 600px at 20% -20%, #1a2433 0%, #0b0f14 60%);
-      color: #e5eefc;
-      min-height: 100svh; display: grid; place-items: center; padding: 28px;
-    }
-    .wrap {
-      width: min(100%, 1000px); background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-      border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.35);
-      padding: 20px;
-    }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-    h1 { font-size: clamp(18px, 2.4vw, 24px); margin: 0; font-weight: 700; letter-spacing: 0.2px; }
-    .muted { color: var(--muted); font-size: 14px; }
-    .card { background: var(--card); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 16px; }
-    .row { display: grid; gap: 12px; grid-template-columns: 1fr auto; align-items: center; }
-    .btn {
-      appearance: none; border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 600;
-      background: linear-gradient(180deg, #5fb3ff, #338bdf); color: #07121f; cursor: pointer;
-      box-shadow: 0 6px 20px rgba(74,167,255,0.35);
-    }
-    .btn:disabled { opacity: .55; cursor: not-allowed; }
-    .btn.secondary { background: linear-gradient(180deg, #d1d5db, #9ca3af); color: #111827; box-shadow: none; }
-    .grid { display: grid; gap: 10px; margin-top: 10px; }
-    .list { display: grid; grid-template-columns: 40px 1fr 120px 90px; gap: 10px; align-items: center; }
-    .badge { font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.15); color: #dbeafe; }
-    .badge.sap { border-color: rgba(34,197,94,.4); color: #bbf7d0; }
-    .kpi { display: flex; gap: 10px; flex-wrap: wrap; }
-    .chip { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 8px 10px; border-radius: 999px; font-size: 13px; }
-    .status { margin-top: 10px; font-size: 13px; }
-    .status b { color: #e5eefc; }
-    .hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
-    .danger { color: var(--err); }
-    footer { margin-top: 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 12px; color: #c7d2fe; }
-    .edit-input { background: #0f172a; border: 1px solid rgba(255,255,255,0.2); color: #e5eefc; padding: 4px 8px; border-radius: 6px; font-size: 12px; width: 100%; }
-    .edit-input:focus { outline: none; border-color: var(--accent); }
-    .edit-row { display: grid; grid-template-columns: 40px 2fr 1fr 120px 90px; gap: 10px; align-items: center; }
-    .edit-row input[type="text"] { font-size: 11px; }
-    .edit-row select { background: #0f172a; border: 1px solid rgba(255,255,255,0.2); color: #e5eefc; padding: 4px 6px; border-radius: 6px; font-size: 11px; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Carousel 4 páginas — 1 minuto por vista (ventana única)</h1>
-      <span class="badge">Web HTML/CSS/JS</span>
-    </header>
-
-    <div class="card grid">
-      <div class="row">
-        <div class="kpi">
-          <span class="chip">Rotación: <b id="intervalLabel">60 s</b></span>
-          <span class="chip">Modo: <b id="modeLabel">Pop-ups</b></span>
-          <span class="chip">Activa: <b id="activeLabel">No</b></span>
-          <span class="chip" id="countdownChip" style="display:none;">Próximo en: <b id="countdown">--</b></span>
-        </div>
-        <div style="display:flex; gap:8px;">
-          <button id="startBtn" class="btn">Iniciar</button>
-          <button id="stopBtn" class="btn secondary" disabled>Detener</button>
-          <button id="nextBtn" class="btn secondary" disabled>Siguiente ahora</button>
-          <button id="debugBtn" class="btn secondary" style="font-size:11px;">Debug</button>
-          <button id="editBtn" class="btn secondary" style="font-size:11px;">✏ Editar</button>
-          <button id="saveBtn" class="btn" style="font-size:11px; display:none;">✅ Guardar</button>
-        </div>
-      </div>
-
-      <div class="list muted" style="font-weight:600; opacity:.9;">
-        <div>#</div><div id="listHeader">URL</div><div>Tipo</div><div>Últ. refresh</div>
-      </div>
-      <div id="list"></div>
-
-      <div class="hint">
-        • Al iniciar se abrirá 1 ventana popup (permite pop-ups).<br/>
-        • Cada minuto la ventana cambiará automáticamente a la siguiente página.<br/>
-        • Para SAP con SSO, inicia sesión una vez y se mantendrá la sesión durante todo el ciclo.
+  <!-- Panel de Control Superior -->
+  <div class="control-panel">
+    <div class="page-info">
+      <div class="page-number" id="pageNumber">1 / 4</div>
+      <div>
+        <div class="page-name" id="pageName">Cargando...</div>
+        <div class="page-url" id="pageUrl">...</div>
       </div>
     </div>
 
-    <footer class="muted">
-      <div>
-        <b>Nota sobre SAP y sesiones:</b> usando una sola ventana popup se mantienen todas las sesiones activas. La ventana navega entre las diferentes URLs manteniendo cookies y autenticación SSO.
+    <div class="page-indicators" id="indicators">
+      <div class="indicator active"></div>
+      <div class="indicator"></div>
+      <div class="indicator"></div>
+      <div class="indicator"></div>
+    </div>
+
+    <div class="nav-controls">
+      <button class="nav-btn" id="prevBtn">
+        ◀ Anterior
+      </button>
+      
+      <div class="countdown-container">
+        <span class="countdown-label">Próximo en:</span>
+        <span class="countdown" id="countdown">60s</span>
       </div>
-      <div>
-        Intervalo (s): <input id="intervalInput" type="number" min="10" step="5" value="60" style="width:80px; padding:6px; border-radius:8px; border:1px solid rgba(255,255,255,.15); background:#0f172a; color:#e5eefc;">
-      </div>
-    </footer>
+
+      <button class="nav-btn next" id="nextBtn">
+        Siguiente ▶
+      </button>
+
+      <button class="nav-btn" id="pauseBtn">
+        ⏸ Pausar
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenedor del Iframe -->
+  <div class="iframe-container">
+    <iframe class="page-iframe" id="mainIframe" src="about:blank"></iframe>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Cargando página...</div>
+    </div>
   </div>
 
   <script>
-    /*************** CONFIG ****************/
-    // Lista de páginas a rotar (ajusta tus URLs)
+    // URLs originales - las que tenías antes
     const PAGES = [
-      { name: "SAP Fiori - Vista 1", url: "http://confiablepro.serviacero.com/WS/01/37/WS01.37.09D.aspx", type: "web" },
-      { name: "SAP Fiori - Vista 2", url: "http://confiable.serviacero.com/RE/01/37/RE01.37-10.aspx", type: "web" },
-      { name: "Dashboard", url: "https://my407367.s4hana.cloud.sap/ui#PurchaseOrderItem-monitorPurDocItems&/?sap-iapp-state--history=TASP48AED8OZYI0BTH47XUTFQWYBJDV04UZ8QC90C&sap-iapp-state=ASJSAV5RWSMGIJ1I7NTPVW2SOUTF9H1TY7YZA2KN", type: "sap" },
-      { name: "Status", url: "https://aq3jyxu3n.accounts.cloud.sap/saml2/idp/sso/aq3jyxu3n.accounts.ondemand.com", type: "sap" }
+      {
+        name: 'SAP Fiori Launchpad',
+        url: 'http://confiablepro.serviacero.com/WS/01/37/WS01.37.09D.aspx'
+      },
+      {
+        name: 'Dashboard Web',  
+        url: 'http://confiable.serviacero.com/RE/01/37/RE01.37-10.aspx'
+      },
+      {
+        name: 'Web Intelligence',
+        url: 'https://my407367.s4hana.cloud.sap/ui#PurchaseOrderItem-monitorPurDocItems&/?sap-iapp-state--history=TASP48AED8OZYI0BTH47XUTFQWYBJDV04UZ8QC90C&sap-iapp-state=ASJSAV5RWSMGIJ1I7NTPVW2SOUTF9H1TY7YZA2KN'
+      },
+      {
+        name: 'Crystal Reports',
+        url: 'https://my407367.s4hana.cloud.sap/ui#PurchaseOrderItem-monitorPurDocItems&/?sap-iapp-state--history=TASP48AED8OZYI0BTH47XUTFQWYBJDV04UZ8QC90C&sap-iapp-state=ASJSAV5RWSMGIJ1I7NTPVW2SOUTF9H1TY7YZA2KN'
+      }
     ];
 
-    const POPUP_MODE = true;
-    //
+    // Estado del carrusel
+    let currentPageIndex = 0;
+    let countdownValue = 60;
+    let countdownTimer = null;
+    let autoAdvanceTimer = null;
+    let isPaused = false;
 
-    // Estado
-    let popupWindow = null;     // Una sola ventana popup
-    let currentIndex = -1;      // índice activo
-    let timer = null;           // setInterval
-    let rotationMs = 60000;     // por defecto (puede cambiar por input)
-    let started = false;
-    let countdownTimer = null;  // Timer para el countdown visual
-    let nextChangeTime = null;  // Tiempo del próximo cambio
+    // Elementos del DOM
+    let mainIframe = null;
+    let loadingOverlay = null;
+    let pageNumber = null;
+    let pageName = null;
+    let pageUrl = null;
+    let countdown = null;
+    let prevBtn = null;
+    let nextBtn = null;
+    let pauseBtn = null;
+    let indicators = null;
 
-    // UI
-    const listEl = document.getElementById('list');
-    const intervalInput = document.getElementById('intervalInput');
-    const intervalLabel = document.getElementById('intervalLabel');
-    const modeLabel = document.getElementById('modeLabel');
-    const activeLabel = document.getElementById('activeLabel');
-    const startBtn = document.getElementById('startBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const debugBtn = document.getElementById('debugBtn');
-    const editBtn = document.getElementById('editBtn');
-    const saveBtn = document.getElementById('saveBtn');
-    const countdownChip = document.getElementById('countdownChip');
-    const countdownEl = document.getElementById('countdown');
-    modeLabel.textContent = POPUP_MODE ? 'Pop-ups' : 'Iframes';
+    // Inicializar cuando se carga la página
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeCarousel();
+    });
 
-    // Variable para modo edición
-    let editMode = false;
-    let editedPages = [...PAGES]; // Copia de las páginas para editar
+    function initializeCarousel() {
+      // Obtener referencias a elementos del DOM
+      mainIframe = document.getElementById('mainIframe');
+      loadingOverlay = document.getElementById('loadingOverlay');
+      pageNumber = document.getElementById('pageNumber');
+      pageName = document.getElementById('pageName');
+      pageUrl = document.getElementById('pageUrl');
+      countdown = document.getElementById('countdown');
+      prevBtn = document.getElementById('prevBtn');
+      nextBtn = document.getElementById('nextBtn');
+      pauseBtn = document.getElementById('pauseBtn');
+      indicators = document.getElementById('indicators');
 
-    function fmtTime(d = new Date()) {
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      // Configurar event listeners
+      prevBtn.addEventListener('click', goToPreviousPage);
+      nextBtn.addEventListener('click', goToNextPage);
+      pauseBtn.addEventListener('click', togglePause);
+
+      // Configurar evento de carga del iframe
+      mainIframe.addEventListener('load', function() {
+        hideLoading();
+        console.log('✅ Página cargada:', PAGES[currentPageIndex].name);
+      });
+
+      mainIframe.addEventListener('error', function(e) {
+        console.error('❌ Error cargando página:', e);
+        showErrorMessage('Error de conexión - Mixed Content bloqueado');
+      });
+
+      // Timeout para detectar páginas que no cargan (CORS/Mixed Content)
+      let loadTimeout;
+      
+      function checkLoadStatus() {
+        loadTimeout = setTimeout(function() {
+          if (loadingOverlay.style.display !== 'none') {
+            console.warn('⚠️ Página bloqueada por Mixed Content o CORS');
+            showErrorMessage('Esta página no se puede cargar en iframe (Mixed Content o X-Frame-Options)');
+          }
+        }, 8000);
+      }
+
+      // Limpiar timeout cuando la página se carga
+      mainIframe.addEventListener('load', function() {
+        clearTimeout(loadTimeout);
+      });
+
+      // Comenzar el carrusel
+      loadCurrentPage();
+      startAutoAdvance();
     }
 
-    function startCountdown() {
-      nextChangeTime = Date.now() + rotationMs;
-      countdownChip.style.display = 'inline-block';
+    function loadCurrentPage() {
+      const page = PAGES[currentPageIndex];
       
-      if (countdownTimer) clearInterval(countdownTimer);
-      countdownTimer = setInterval(() => {
-        const remaining = Math.max(0, nextChangeTime - Date.now());
-        const seconds = Math.ceil(remaining / 1000);
-        countdownEl.textContent = seconds + 's';
-        
-        if (remaining <= 0) {
-          countdownEl.textContent = '¡Cambiando!';
+      showLoading();
+      updatePageInfo();
+      updateIndicators();
+      
+      // Cargar la página en el iframe
+      mainIframe.src = page.url;
+      
+      // Timeout para detectar páginas bloqueadas
+      setTimeout(function() {
+        if (loadingOverlay.style.display !== 'none') {
+          console.warn('⚠️ Página puede estar bloqueada');
+          showErrorMessage('Página bloqueada - Revisa Mixed Content');
+        }
+      }, 8000);
+    }
+
+    function updatePageInfo() {
+      const page = PAGES[currentPageIndex];
+      pageNumber.textContent = `${currentPageIndex + 1} / ${PAGES.length}`;
+      pageName.textContent = page.name;
+      pageUrl.textContent = page.url;
+    }
+
+    function updateIndicators() {
+      const indicatorElements = indicators.children;
+      for (let i = 0; i < indicatorElements.length; i++) {
+        if (i === currentPageIndex) {
+          indicatorElements[i].classList.add('active');
+        } else {
+          indicatorElements[i].classList.remove('active');
+        }
+      }
+    }
+
+    function showLoading() {
+      loadingOverlay.innerHTML = `
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Cargando página...</div>
+      `;
+      loadingOverlay.style.display = 'flex';
+    }
+
+    function hideLoading() {
+      loadingOverlay.style.display = 'none';
+    }
+
+    function showErrorMessage(message) {
+      loadingOverlay.innerHTML = `
+        <div style="text-align: center; max-width: 500px;">
+          <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+          <div style="font-size: 18px; color: #ef4444; margin-bottom: 10px;">Error de carga</div>
+          <div style="font-size: 14px; color: #93a3b8; margin-bottom: 20px; line-height: 1.5;">
+            ${message}
+          </div>
+          <div style="margin-bottom: 15px; padding: 10px; background: rgba(239,68,68,0.1); border-radius: 5px; font-size: 12px;">
+            <strong>Solución:</strong> Las URLs HTTP no funcionan en GitHub Pages (HTTPS). 
+            Necesitas URLs HTTPS que permitan iframe.
+          </div>
+          <button onclick="goToNextPage()" style="
+            background: #5fb3ff; color: white; padding: 10px 20px; 
+            border: none; border-radius: 5px; cursor: pointer; margin: 5px;
+          ">Siguiente página ▶</button>
+          <button onclick="window.location.reload()" style="
+            background: #6b7280; color: white; padding: 10px 20px; 
+            border: none; border-radius: 5px; cursor: pointer; margin: 5px;
+          ">🔄 Reintentar</button>
+        </div>
+      `;
+      loadingOverlay.style.display = 'flex';
+    }
+
+    function goToNextPage() {
+      currentPageIndex = (currentPageIndex + 1) % PAGES.length;
+      loadCurrentPage();
+      resetCountdown();
+    }
+
+    function goToPreviousPage() {
+      currentPageIndex = currentPageIndex === 0 ? PAGES.length - 1 : currentPageIndex - 1;
+      loadCurrentPage();
+      resetCountdown();
+    }
+
+    function togglePause() {
+      isPaused = !isPaused;
+      
+      if (isPaused) {
+        pauseBtn.textContent = '▶ Reanudar';
+        pauseBtn.classList.add('paused');
+        clearInterval(countdownTimer);
+        clearTimeout(autoAdvanceTimer);
+      } else {
+        pauseBtn.textContent = '⏸ Pausar';
+        pauseBtn.classList.remove('paused');
+        startAutoAdvance();
+      }
+    }
+
+    function startAutoAdvance() {
+      if (isPaused) return;
+      
+      countdownValue = 60;
+      updateCountdownDisplay();
+      
+      // Timer para el countdown
+      countdownTimer = setInterval(function() {
+        if (!isPaused) {
+          countdownValue--;
+          updateCountdownDisplay();
         }
       }, 1000);
-    }
-
-    function stopCountdown() {
-      countdownChip.style.display = 'none';
-      if (countdownTimer) {
-        clearInterval(countdownTimer);
-        countdownTimer = null;
-      }
-    }
-
-    function renderList() {
-      listEl.innerHTML = "";
-      const headerEl = document.getElementById('listHeader');
       
-      if (editMode) {
-        // Actualizar encabezado para modo edición
-        headerEl.innerHTML = 'Nombre &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; URL';
-        
-        // Vista de edición
-        editedPages.forEach((p, i) => {
-          const row = document.createElement('div');
-          row.className = 'edit-row';
-          row.innerHTML = `
-            <div>${i+1}</div>
-            <input type="text" class="edit-input" data-field="name" data-index="${i}" value="${p.name}" placeholder="Nombre de la página">
-            <input type="text" class="edit-input" data-field="url" data-index="${i}" value="${p.url}" placeholder="URL completa">
-            <select class="edit-input" data-field="type" data-index="${i}">
-              <option value="sap" ${p.type === 'sap' ? 'selected' : ''}>SAP</option>
-              <option value="web" ${p.type === 'web' ? 'selected' : ''}>Web</option>
-            </select>
-            <div id="ts-${i}" class="muted">—</div>
-          `;
-          listEl.appendChild(row);
-        });
-        
-        // Agregar evento para actualizar los datos mientras se edita
-        listEl.addEventListener('input', (e) => {
-          if (e.target.matches('.edit-input')) {
-            const index = parseInt(e.target.dataset.index);
-            const field = e.target.dataset.field;
-            editedPages[index][field] = e.target.value;
-          }
-        });
-        
-      } else {
-        // Restaurar encabezado normal
-        headerEl.textContent = 'URL';
-        
-        // Vista normal
-        editedPages.forEach((p, i) => {
-          const row = document.createElement('div');
-          row.className = 'list';
-          row.innerHTML = `
-            <div>${i+1}</div>
-            <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${p.url}">
-              ${p.name} <span class="muted">—</span> <code>${p.url}</code>
-            </div>
-            <div><span class="badge ${p.type === 'sap' ? 'sap' : ''}">${p.type === 'sap' ? 'SAP' : 'Web'}</span></div>
-            <div id="ts-${i}" class="muted">—</div>
-          `;
-          listEl.appendChild(row);
-        });
+      // Timer para avanzar automáticamente
+      autoAdvanceTimer = setTimeout(function() {
+        if (!isPaused) {
+          goToNextPage();
+        }
+      }, 60000);
+    }
+
+    function resetCountdown() {
+      clearInterval(countdownTimer);
+      clearTimeout(autoAdvanceTimer);
+      startAutoAdvance();
+    }
+
+    function updateCountdownDisplay() {
+      countdown.textContent = countdownValue + 's';
+      
+      // Cambiar color basado en el tiempo restante
+      countdown.className = 'countdown';
+      if (countdownValue <= 10) {
+        countdown.classList.add('warning');
+      } else if (countdownValue > 45) {
+        countdown.classList.add('good');
       }
     }
 
-    renderList();
-
-    intervalInput.addEventListener('input', () => {
-      const s = Math.max(10, Number(intervalInput.value) || 60);
-      intervalInput.value = s;
-      rotationMs = s * 1000;
-      intervalLabel.textContent = s + ' s';
-      
-      // Si hay un timer activo, lo reiniciamos con el nuevo intervalo
-      if (timer && started) {
-        console.log('Reiniciando timer con nuevo intervalo:', s + 's');
-        clearInterval(timer);
-        timer = setInterval(() => {
-          console.log(`Timer ejecutándose - próximo cambio automático`);
-          next();
-        }, rotationMs);
-      }
+    // Limpiar timers al cerrar la página
+    window.addEventListener('beforeunload', function() {
+      clearInterval(countdownTimer);
+      clearTimeout(autoAdvanceTimer);
     });
 
-    function openPopupWindow() {
-      // Tamaño pantalla disponible
-      const w = screen.availWidth, h = screen.availHeight;
-      const features = `popup=yes,toolbar=yes,location=yes,status=yes,menubar=yes,scrollbars=yes,resizable=yes,left=0,top=0,width=${w},height=${h}`;
-
-      console.log('Verificando ventana popup única...');
-      
-      // Si ya existe una ventana y está abierta, la reutilizamos
-      if (popupWindow && !popupWindow.closed) {
-        console.log('Ventana popup existente detectada, reutilizando...');
-        try {
-          popupWindow.focus();
-          return true;
-        } catch(e) {
-          console.warn('Error enfocando ventana existente:', e);
-        }
-      }
-      
-      // Solo abrimos nueva ventana si no existe o está cerrada
-      const firstPage = editedPages[0];
-      popupWindow = window.open(firstPage.url, 'OrbisCarouselWindow', features);
-      
-      if (!popupWindow) {
-        console.error('No se pudo abrir la ventana popup - bloqueada por el navegador');
-        alert('El navegador bloqueó la ventana popup. Permite ventanas emergentes para este sitio y vuelve a presionar "Iniciar".');
-        return false;
-      }
-      
-      console.log(`Ventana popup abierta con: ${firstPage.name}`);
-      return true;
-    }
-
-    function refreshTarget(win, url) {
-      // Validamos que la ventana esté disponible
-      if (!win || win.closed) {
-        console.error('Ventana cerrada, no se puede refrescar');
-        return false;
-      }
-      
-      try {
-        // Navegamos directamente a la nueva URL
-        win.location.href = url;
-        console.log('Ventana navegada correctamente a:', url);
-        return true;
-      } catch (e) {
-        console.warn('Error navegando, intentando con location.replace:', e);
-        // Fallback
-        try { 
-          win.location.replace(url);
-          console.log('Ventana navegada con replace a:', url);
-          return true;
-        } catch(e2) { 
-          console.error('Error total al navegar ventana:', e2);
-          return false;
-        }
-      }
-    }
-
-    function next() {
-      if (!started) {
-        console.log('next() llamado pero carousel no está iniciado');
-        return;
-      }
-      
-      currentIndex = (currentIndex + 1) % editedPages.length;
-      const page = editedPages[currentIndex];
-      
-      console.log(`[${fmtTime()}] Cambiando a página ${currentIndex + 1}/${editedPages.length}: ${page.name}`);
-
-      if (POPUP_MODE) {
-        // Verificamos que la ventana popup siga abierta
-        if (!popupWindow || popupWindow.closed) {
-          console.log('⚠ Ventana popup cerrada por el usuario - deteniendo carousel');
-          alert('La ventana popup fue cerrada. El carousel se ha detenido.');
-          stop();
-          return;
-        }
-        
-        // La ventana está abierta, navegamos a la nueva página
-        try {
-          popupWindow.focus();
-          console.log(`Ventana popup enfocada`);
-        } catch(e) { 
-          console.warn(`Error enfocando ventana popup:`, e);
-        }
-        
-        // Navegamos a la nueva página
-        try {
-          const navigated = refreshTarget(popupWindow, page.url);
-          if (navigated) {
-            console.log(`✓ Navegado exitosamente a: ${page.name}`);
-          } else {
-            console.warn(`⚠ No se pudo navegar a: ${page.name}`);
-          }
-        } catch(e) {
-          console.error(`✗ Error navegando a ${page.name}:`, e);
-        }
-      } else {
-        // MODO IFRAME
-        console.log(`Mostrando iframe para página ${currentIndex + 1}`);
-        try {
-          showIframe(page);
-          console.log(`✓ Iframe ${currentIndex + 1} mostrado exitosamente`);
-        } catch(e) {
-          console.error(`✗ Error mostrando iframe ${currentIndex + 1}:`, e);
-        }
-      }
-
-      // Siempre actualizamos la UI independientemente de errores
-      const ts = document.getElementById(`ts-${currentIndex}`);
-      if (ts) ts.textContent = fmtTime();
-      activeLabel.textContent = `${currentIndex+1}/${editedPages.length}`;
-      
-      // Reiniciar countdown si está activo
-      if (started) {
-        startCountdown();
-      }
-      
-      console.log(`[${fmtTime()}] Cambio a página ${currentIndex + 1} finalizado. Próximo en ${rotationMs/1000}s`);
-    }
-
-    // ---- IFRAME MODE (opcional, no recomendado para SAP) ----
-    let iframeEl = null;
-    function setupIframe() {
-      if (iframeEl) return;
-      iframeEl = document.createElement('iframe');
-      iframeEl.setAttribute('title', 'Carousel Frame');
-      iframeEl.style.cssText = 'width:100%;height:70vh;border:1px solid rgba(255,255,255,0.15);border-radius:12px;background:#0b1220;';
-      document.querySelector('.card').appendChild(iframeEl);
-    }
-    function showIframe(page) {
-      setupIframe();
-      const sep = page.url.includes('?') ? '&' : '?';
-      iframeEl.src = page.url + sep + 'r=' + Date.now();
-    }
-
-    function start() {
-      if (started) return;
-      console.log('Iniciando carousel con ventana única...');
-      
-      // Abrimos una sola ventana popup si estamos en modo pop-up
-      if (POPUP_MODE) {
-        const ok = openPopupWindow();
-        if (!ok) return;
-        currentIndex = 0; // Empezamos desde la primera página
-      }
-      started = true;
-      activeLabel.textContent = '1/' + editedPages.length;
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-      nextBtn.disabled = false;
-
-      // Disparamos inmediatamente el primer “mostrar + refresh”
-      currentIndex = -1;
-      next();
-
-      // y programamos la rotación
-      timer = setInterval(() => {
-        console.log(`[${fmtTime()}] Timer ejecutándose - iniciando cambio automático`);
-        next();
-      }, rotationMs);
-      
-      // Iniciamos el countdown visual
-      startCountdown();
-      
-      console.log(`Carousel iniciado con intervalo de ${rotationMs/1000}s - Timer ID: ${timer}`);
-    }
-
-    function stop() {
-      console.log('Deteniendo carousel...');
-      started = false;
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-      nextBtn.disabled = true;
-      activeLabel.textContent = 'No';
-      
-      if (timer) { 
-        clearInterval(timer); 
-        timer = null; 
-        console.log('Timer detenido');
-      }
-      
-      stopCountdown();
-      
-      // Opcionalmente cerrar la ventana popup
-      // if (popupWindow && !popupWindow.closed) {
-      //   popupWindow.close();
-      //   console.log('Ventana popup cerrada');
-      // }
-    }
-
-    startBtn.addEventListener('click', start);
-    stopBtn.addEventListener('click', stop);
-    nextBtn.addEventListener('click', next);
-    
-    // Funcionalidad de edición
-    editBtn.addEventListener('click', () => {
-      if (started) {
-        alert('Detén el carousel antes de editar las páginas');
-        return;
-      }
-      
-      editMode = true;
-      editBtn.style.display = 'none';
-      saveBtn.style.display = 'inline-block';
-      startBtn.disabled = true;
-      
-      renderList();
-      console.log('Modo edición activado');
-    });
-    
-    saveBtn.addEventListener('click', () => {
-      // Validar que todas las páginas tengan datos válidos
-      let valid = true;
-      for (let i = 0; i < editedPages.length; i++) {
-        if (!editedPages[i].name.trim() || !editedPages[i].url.trim()) {
-          alert(`La página ${i + 1} necesita nombre y URL`);
-          valid = false;
-          break;
-        }
-        if (!editedPages[i].url.startsWith('http://') && !editedPages[i].url.startsWith('https://')) {
-          alert(`La URL de la página ${i + 1} debe comenzar con http:// o https://`);
-          valid = false;
-          break;
-        }
-      }
-      
-      if (valid) {
-        editMode = false;
-        editBtn.style.display = 'inline-block';
-        saveBtn.style.display = 'none';
-        startBtn.disabled = false;
-        
-        renderList();
-        console.log('Páginas guardadas:', editedPages);
-        alert('✅ Páginas guardadas correctamente');
-      }
-    });
-    
-    // Función de diagnóstico
-    debugBtn.addEventListener('click', () => {
-      console.log('=== DIAGNÓSTICO DEL CAROUSEL (VENTANA ÚNICA) ===');
-      console.log('Started:', started);
-      console.log('Current Index:', currentIndex);
-      console.log('Timer:', timer ? `Activo (ID: ${timer})` : 'Inactivo');
-      console.log('Rotation Ms:', rotationMs);
-      
-      if (popupWindow) {
-        if (popupWindow.closed) {
-          console.log('Popup Window: cerrada');
-        } else {
-          try {
-            console.log('Popup Window: abierta -', popupWindow.location.href);
-          } catch(e) {
-            console.log('Popup Window: abierta (cross-origin)');
-          }
-        }
-      } else {
-        console.log('Popup Window: null');
-      }
-      
-      console.log('Páginas en rotación:', editedPages.length);
-      editedPages.forEach((page, i) => {
-        const active = i === currentIndex ? ' <- ACTUAL' : '';
-        console.log(`  ${i + 1}. ${page.name}${active}`);
-      });
-      
-      console.log('Próximo cambio en:', new Date(Date.now() + rotationMs));
-      console.log('=== FIN DIAGNÓSTICO ===');
-    });
-
-    // Verificación del timer cada 30 segundos para asegurar que sigue funcionando
-    setInterval(() => {
-      if (started && !timer) {
-        console.warn('⚠ TIMER PERDIDO - Reiniciando automáticamente');
-        timer = setInterval(() => {
-          console.log(`[${fmtTime()}] Timer ejecutándose - próximo cambio automático (recuperado)`);
-          next();
-        }, rotationMs);
-        console.log('✅ Timer reiniciado automáticamente');
-      }
-    }, 30000);
-
-    // Pausar si esta página pierde visibilidad (opcional)
-    document.addEventListener('visibilitychange', () => {
-      if (!started) return;
-      if (document.hidden) {
-        if (timer) { 
-          clearInterval(timer); 
-          timer = null; 
-          console.log('Carousel pausado - página oculta');
-        }
-      } else {
-        if (!timer && started) { 
-          timer = setInterval(() => {
-            console.log(`Timer ejecutándose - próximo cambio automático`);
-            next();
-          }, rotationMs); 
-          console.log('Carousel reanudado - página visible');
-        }
-      }
-    });
-
-    // Limpieza al cerrar
-    window.addEventListener('beforeunload', () => {
-      if (popupWindow && !popupWindow.closed) {
-        try { popupWindow.close(); } catch(e) { console.log('Error cerrando popup:', e); }
-      }
-    });
+    console.log('🚀 Carrusel Orbis iniciado - Versión iframe integrada');
+    console.log('⚠️ Nota: URLs HTTP serán bloqueadas por Mixed Content en GitHub Pages');
   </script>
 </body>
 </html>
