@@ -1,0 +1,553 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Nóminas - Sistema de Nóminas{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-4">
+            <i class="bi bi-file-earmark-text-fill"></i> Gestión de Nóminas
+        </h1>
+        <p class="lead">Crear, editar y gestionar nóminas de empleados</p>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="empleados-tab" data-bs-toggle="tab" data-bs-target="#empleados" type="button">
+            <i class="bi bi-people"></i> Empleados
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="nominas-tab" data-bs-toggle="tab" data-bs-target="#nominas" type="button">
+            <i class="bi bi-file-text"></i> Nóminas
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="nueva-nomina-tab" data-bs-toggle="tab" data-bs-target="#nueva-nomina" type="button">
+            <i class="bi bi-plus-circle"></i> Nueva Nómina
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content">
+    <!-- Empleados Tab -->
+    <div class="tab-pane fade show active" id="empleados" role="tabpanel">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Lista de Empleados</h5>
+                <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#empleadoModal">
+                    <i class="bi bi-plus-circle"></i> Nuevo Empleado
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="empleadosTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Sueldo Diario</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="empleadosTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Cargando...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nominas Tab -->
+    <div class="tab-pane fade" id="nominas" role="tabpanel">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-0">Historial de Nóminas</h5>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select form-select-sm" id="periodFilter">
+                            <option value="">Todos los periodos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm" id="nominasTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Empleado</th>
+                                <th>Periodo</th>
+                                <th>Días</th>
+                                <th>Extras</th>
+                                <th>Bonos</th>
+                                <th>Descuentos</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nominasTableBody">
+                            <tr>
+                                <td colspan="9" class="text-center">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Cargando...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nueva Nomina Tab -->
+    <div class="tab-pane fade" id="nueva-nomina" role="tabpanel">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Crear Nueva Nómina</h5>
+            </div>
+            <div class="card-body">
+                <form id="nominaForm">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Empleado *</label>
+                            <select class="form-select" id="empleadoSelect" required>
+                                <option value="">Seleccione un empleado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Periodo *</label>
+                            <input type="text" class="form-control" id="periodo" placeholder="2024-01-01 a 2024-01-15" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Días Trabajados</label>
+                            <input type="number" class="form-control" id="diasTrabajados" value="15" min="0" max="31">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Horas Extra</label>
+                            <input type="number" class="form-control" id="horasExtra" value="0" min="0" step="0.5">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Faltas</label>
+                            <input type="number" class="form-control" id="faltas" value="0" min="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Tardes</label>
+                            <input type="number" class="form-control" id="tardes" value="0" min="0">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Bono de Puntualidad ($)</label>
+                            <input type="number" class="form-control" id="bonoPuntualidad" value="100" min="0" step="0.01">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Bono de Producción ($)</label>
+                            <input type="number" class="form-control" id="bonoProduccion" value="100" min="0" step="0.01">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Descuento por Tardes ($)</label>
+                            <input type="number" class="form-control" id="descuentoTardes" value="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Préstamo Total ($)</label>
+                            <input type="number" class="form-control" id="prestamo" value="0" min="0" step="0.01">
+                            <small class="text-muted">Se descontará el 3%</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Caja de Ahorro ($)</label>
+                            <input type="number" class="form-control" id="cajaAhorro" value="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <!-- Calculation Preview -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Vista Previa del Cálculo</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>Sueldo Base:</strong></td>
+                                            <td class="text-end" id="preview_sueldo_base">$0.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Pago Extras:</strong></td>
+                                            <td class="text-end" id="preview_pago_extras">$0.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Ajuste Faltas:</strong></td>
+                                            <td class="text-end" id="preview_ajuste_faltas">$0.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Total Bonos:</strong></td>
+                                            <td class="text-end" id="preview_total_bonos">$0.00</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>Desc. Tardes:</strong></td>
+                                            <td class="text-end text-danger" id="preview_desc_tardes">$0.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Desc. Préstamo:</strong></td>
+                                            <td class="text-end text-danger" id="preview_desc_prestamo">$0.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Caja Ahorro:</strong></td>
+                                            <td class="text-end text-danger" id="preview_caja_ahorro">$0.00</td>
+                                        </tr>
+                                        <tr class="table-success">
+                                            <td><strong>TOTAL A PAGAR:</strong></td>
+                                            <td class="text-end"><strong id="preview_total_pagar">$0.00</strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-secondary" onclick="calcularPreview()">
+                            <i class="bi bi-calculator"></i> Calcular
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-save"></i> Guardar Nómina
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Empleado -->
+<div class="modal fade" id="empleadoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nuevo Empleado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="empleadoForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre Completo *</label>
+                        <input type="text" class="form-control" id="empleadoNombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sueldo Diario ($) *</label>
+                        <input type="number" class="form-control" id="empleadoSueldo" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/calculos.js') }}"></script>
+<script>
+// Load initial data
+document.addEventListener('DOMContentLoaded', function() {
+    loadEmpleados();
+    loadNominas();
+    loadPeriodos();
+    
+    // Setup form handlers
+    document.getElementById('empleadoForm').addEventListener('submit', handleEmpleadoSubmit);
+    document.getElementById('nominaForm').addEventListener('submit', handleNominaSubmit);
+    document.getElementById('periodFilter').addEventListener('change', loadNominas);
+    
+    // Setup auto-calculation
+    const inputs = ['empleadoSelect', 'diasTrabajados', 'horasExtra', 'faltas', 'tardes', 
+                    'bonoPuntualidad', 'bonoProduccion', 'descuentoTardes', 'prestamo', 'cajaAhorro'];
+    inputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', calcularPreview);
+    });
+});
+
+async function loadEmpleados() {
+    try {
+        const response = await fetch('/api/empleados');
+        const empleados = await response.json();
+        
+        displayEmpleados(empleados);
+        populateEmpleadoSelect(empleados);
+    } catch (error) {
+        console.error('Error loading empleados:', error);
+    }
+}
+
+function displayEmpleados(empleados) {
+    const tbody = document.getElementById('empleadosTableBody');
+    
+    if (empleados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No hay empleados registrados</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = empleados.map(emp => `
+        <tr>
+            <td>${emp.id}</td>
+            <td><strong>${emp.nombre}</strong></td>
+            <td>${formatCurrency(emp.sueldo_diario)}</td>
+            <td>
+                <span class="badge bg-${emp.activo ? 'success' : 'secondary'}">
+                    ${emp.activo ? 'Activo' : 'Inactivo'}
+                </span>
+            </td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-outline-warning" onclick="editEmpleado(${emp.id})">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteEmpleado(${emp.id})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function populateEmpleadoSelect(empleados) {
+    const select = document.getElementById('empleadoSelect');
+    select.innerHTML = '<option value="">Seleccione un empleado</option>' + 
+        empleados.map(emp => `<option value="${emp.id}">${emp.nombre} - ${formatCurrency(emp.sueldo_diario)}/día</option>`).join('');
+}
+
+async function loadNominas() {
+    try {
+        const periodo = document.getElementById('periodFilter').value;
+        let url = '/api/nominas';
+        if (periodo) url += `?periodo=${periodo}`;
+        
+        const response = await fetch(url);
+        const nominas = await response.json();
+        
+        displayNominas(nominas);
+    } catch (error) {
+        console.error('Error loading nominas:', error);
+    }
+}
+
+function displayNominas(nominas) {
+    const tbody = document.getElementById('nominasTableBody');
+    
+    if (nominas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No hay nóminas registradas</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = nominas.map(nom => `
+        <tr>
+            <td>${nom.id}</td>
+            <td><strong>${nom.empleado_nombre || 'N/A'}</strong></td>
+            <td>${nom.periodo}</td>
+            <td>${nom.dias_trabajados}</td>
+            <td>${nom.horas_extra} hrs</td>
+            <td>${formatCurrency(nom.total_bonos)}</td>
+            <td class="text-danger">${formatCurrency(nom.total_descuentos)}</td>
+            <td class="text-end"><strong>${formatCurrency(nom.total_pagar)}</strong></td>
+            <td class="text-center">
+                <a href="/api/reportes/pdf/${nom.id}" class="btn btn-sm btn-outline-danger" target="_blank">
+                    <i class="bi bi-file-pdf"></i>
+                </a>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteNomina(${nom.id})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+async function loadPeriodos() {
+    try {
+        const response = await fetch('/api/periodos');
+        const periodos = await response.json();
+        
+        const select = document.getElementById('periodFilter');
+        select.innerHTML = '<option value="">Todos los periodos</option>' + 
+            periodos.map(p => `<option value="${p}">${p}</option>`).join('');
+    } catch (error) {
+        console.error('Error loading periodos:', error);
+    }
+}
+
+async function handleEmpleadoSubmit(e) {
+    e.preventDefault();
+    
+    const data = {
+        nombre: document.getElementById('empleadoNombre').value,
+        sueldo_diario: parseFloat(document.getElementById('empleadoSueldo').value)
+    };
+    
+    try {
+        const response = await fetch('/api/empleados', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            alert('Empleado creado exitosamente');
+            bootstrap.Modal.getInstance(document.getElementById('empleadoModal')).hide();
+            e.target.reset();
+            loadEmpleados();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + error.error);
+        }
+    } catch (error) {
+        console.error('Error creating empleado:', error);
+        alert('Error al crear empleado');
+    }
+}
+
+async function handleNominaSubmit(e) {
+    e.preventDefault();
+    
+    const data = {
+        empleado_id: parseInt(document.getElementById('empleadoSelect').value),
+        periodo: document.getElementById('periodo').value,
+        dias_trabajados: parseInt(document.getElementById('diasTrabajados').value),
+        horas_extra: parseFloat(document.getElementById('horasExtra').value),
+        faltas: parseInt(document.getElementById('faltas').value),
+        tardes: parseInt(document.getElementById('tardes').value),
+        bono_puntualidad: parseFloat(document.getElementById('bonoPuntualidad').value),
+        bono_produccion: parseFloat(document.getElementById('bonoProduccion').value),
+        descuento_tardes: parseFloat(document.getElementById('descuentoTardes').value),
+        prestamo: parseFloat(document.getElementById('prestamo').value),
+        caja_ahorro: parseFloat(document.getElementById('cajaAhorro').value)
+    };
+    
+    try {
+        const response = await fetch('/api/nominas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            alert('Nómina creada exitosamente');
+            e.target.reset();
+            document.getElementById('nominas-tab').click();
+            loadNominas();
+            loadPeriodos();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + error.error);
+        }
+    } catch (error) {
+        console.error('Error creating nomina:', error);
+        alert('Error al crear nómina');
+    }
+}
+
+async function calcularPreview() {
+    const empleadoId = document.getElementById('empleadoSelect').value;
+    if (!empleadoId) {
+        return;
+    }
+    
+    const data = {
+        empleado_id: parseInt(empleadoId),
+        dias_trabajados: parseInt(document.getElementById('diasTrabajados').value) || 0,
+        horas_extra: parseFloat(document.getElementById('horasExtra').value) || 0,
+        faltas: parseInt(document.getElementById('faltas').value) || 0,
+        tardes: parseInt(document.getElementById('tardes').value) || 0,
+        bono_puntualidad: parseFloat(document.getElementById('bonoPuntualidad').value) || 0,
+        bono_produccion: parseFloat(document.getElementById('bonoProduccion').value) || 0,
+        descuento_tardes: parseFloat(document.getElementById('descuentoTardes').value) || 0,
+        prestamo: parseFloat(document.getElementById('prestamo').value) || 0,
+        caja_ahorro: parseFloat(document.getElementById('cajaAhorro').value) || 0
+    };
+    
+    try {
+        const response = await fetch('/api/calcular', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            
+            document.getElementById('preview_sueldo_base').textContent = formatCurrency(result.sueldo_base);
+            document.getElementById('preview_pago_extras').textContent = formatCurrency(result.pago_extras);
+            document.getElementById('preview_ajuste_faltas').textContent = formatCurrency(result.ajuste_faltas);
+            document.getElementById('preview_total_bonos').textContent = formatCurrency(result.total_bonos);
+            document.getElementById('preview_desc_tardes').textContent = formatCurrency(data.descuento_tardes);
+            document.getElementById('preview_desc_prestamo').textContent = formatCurrency(result.descuento_prestamo);
+            document.getElementById('preview_caja_ahorro').textContent = formatCurrency(data.caja_ahorro);
+            document.getElementById('preview_total_pagar').textContent = formatCurrency(result.total_pagar);
+        }
+    } catch (error) {
+        console.error('Error calculating preview:', error);
+    }
+}
+
+async function deleteEmpleado(id) {
+    if (!confirm('¿Está seguro de desactivar este empleado?')) return;
+    
+    try {
+        const response = await fetch(`/api/empleados/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Empleado desactivado');
+            loadEmpleados();
+        }
+    } catch (error) {
+        console.error('Error deleting empleado:', error);
+    }
+}
+
+async function deleteNomina(id) {
+    if (!confirm('¿Está seguro de eliminar esta nómina?')) return;
+    
+    try {
+        const response = await fetch(`/api/nominas/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Nómina eliminada');
+            loadNominas();
+        }
+    } catch (error) {
+        console.error('Error deleting nomina:', error);
+    }
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: 'MXN'
+    }).format(amount || 0);
+}
+</script>
+{% endblock %}

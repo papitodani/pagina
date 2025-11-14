@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Calculadora Rápida - Sistema de Nóminas{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-4">
+            <i class="bi bi-calculator"></i> Calculadora Rápida
+        </h1>
+        <p class="lead">Calcula una nómina sin guardarla en el sistema</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Datos de Entrada</h5>
+            </div>
+            <div class="card-body">
+                <form id="quickCalcForm">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Sueldo Diario ($)</strong></label>
+                        <input type="number" class="form-control form-control-lg" id="calc_sueldo_diario" 
+                               value="0" min="0" step="0.01" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Días Trabajados</label>
+                        <input type="number" class="form-control" id="calc_dias_trabajados" 
+                               value="15" min="0" max="31">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Horas Extra</label>
+                        <input type="number" class="form-control" id="calc_horas_extra" 
+                               value="0" min="0" step="0.5">
+                        <small class="text-muted">$35 pesos por hora</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Faltas</label>
+                        <input type="number" class="form-control" id="calc_faltas" 
+                               value="0" min="0">
+                        <small class="text-muted">Se suma el sueldo diario por cada falta</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tardes</label>
+                        <input type="number" class="form-control" id="calc_tardes" 
+                               value="0" min="0">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Descuento por Tardes ($)</label>
+                        <input type="number" class="form-control" id="calc_descuento_tardes" 
+                               value="0" min="0" step="0.01">
+                    </div>
+
+                    <hr>
+
+                    <h6 class="text-success">Bonos</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">Bono de Puntualidad ($)</label>
+                        <input type="number" class="form-control" id="calc_bono_puntualidad" 
+                               value="100" min="0" step="0.01">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Bono de Producción ($)</label>
+                        <input type="number" class="form-control" id="calc_bono_produccion" 
+                               value="100" min="0" step="0.01">
+                    </div>
+
+                    <hr>
+
+                    <h6 class="text-danger">Descuentos</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">Préstamo Total ($)</label>
+                        <input type="number" class="form-control" id="calc_prestamo" 
+                               value="0" min="0" step="0.01">
+                        <small class="text-muted">Se descuenta el 3%</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Caja de Ahorro ($)</label>
+                        <input type="number" class="form-control" id="calc_caja_ahorro" 
+                               value="0" min="0" step="0.01">
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-primary btn-lg" onclick="calculateQuick()">
+                            <i class="bi bi-calculator-fill"></i> Calcular Nómina
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Resultado del Cálculo</h5>
+            </div>
+            <div class="card-body">
+                <div id="quickCalcResult" style="display: none;">
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">Percepciones</h6>
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <td><strong>Sueldo Base:</strong></td>
+                                <td class="text-end" id="result_sueldo_base">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Pago por Horas Extra:</strong></td>
+                                <td class="text-end" id="result_pago_extras">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ajuste por Faltas:</strong></td>
+                                <td class="text-end" id="result_ajuste_faltas">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Bono de Puntualidad:</strong></td>
+                                <td class="text-end" id="result_bono_puntualidad">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Bono de Producción:</strong></td>
+                                <td class="text-end" id="result_bono_produccion">$0.00</td>
+                            </tr>
+                            <tr class="border-top">
+                                <td><strong>Subtotal Percepciones:</strong></td>
+                                <td class="text-end"><strong id="result_subtotal_percepciones">$0.00</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">Deducciones</h6>
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <td><strong>Descuento por Tardes:</strong></td>
+                                <td class="text-end text-danger" id="result_desc_tardes">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Descuento por Préstamo (3%):</strong></td>
+                                <td class="text-end text-danger" id="result_desc_prestamo">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Caja de Ahorro:</strong></td>
+                                <td class="text-end text-danger" id="result_caja_ahorro">$0.00</td>
+                            </tr>
+                            <tr class="border-top">
+                                <td><strong>Subtotal Deducciones:</strong></td>
+                                <td class="text-end"><strong class="text-danger" id="result_total_descuentos">$0.00</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <h4 class="alert-heading text-center">NETO A PAGAR</h4>
+                        <h1 class="text-center mb-0" id="result_total_pagar">$0.00</h1>
+                    </div>
+
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6>Desglose de Cálculos:</h6>
+                            <ul class="list-unstyled mb-0 small">
+                                <li>• Sueldo Base = Días trabajados × Sueldo diario</li>
+                                <li>• Horas Extra = Horas × $35</li>
+                                <li>• Ajuste Faltas = Faltas × Sueldo diario (se suma)</li>
+                                <li>• Desc. Préstamo = Préstamo × 3%</li>
+                                <li>• <strong>Total = Percepciones - Deducciones</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quickCalcEmpty" class="text-center text-muted py-5">
+                    <i class="bi bi-calculator fs-1 d-block mb-3"></i>
+                    <p>Ingrese los datos y presione "Calcular Nómina"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-calculate on input change
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = [
+        'calc_sueldo_diario', 'calc_dias_trabajados', 'calc_horas_extra', 
+        'calc_faltas', 'calc_tardes', 'calc_descuento_tardes',
+        'calc_bono_puntualidad', 'calc_bono_produccion', 
+        'calc_prestamo', 'calc_caja_ahorro'
+    ];
+    
+    inputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', calculateQuick);
+        }
+    });
+});
+
+function calculateQuick() {
+    const sueldoDiario = parseFloat(document.getElementById('calc_sueldo_diario').value) || 0;
+    const diasTrabajados = parseInt(document.getElementById('calc_dias_trabajados').value) || 0;
+    const horasExtra = parseFloat(document.getElementById('calc_horas_extra').value) || 0;
+    const faltas = parseInt(document.getElementById('calc_faltas').value) || 0;
+    const tardes = parseInt(document.getElementById('calc_tardes').value) || 0;
+    const descuentoTardes = parseFloat(document.getElementById('calc_descuento_tardes').value) || 0;
+    const bonoPuntualidad = parseFloat(document.getElementById('calc_bono_puntualidad').value) || 0;
+    const bonoProduccion = parseFloat(document.getElementById('calc_bono_produccion').value) || 0;
+    const prestamo = parseFloat(document.getElementById('calc_prestamo').value) || 0;
+    const cajaAhorro = parseFloat(document.getElementById('calc_caja_ahorro').value) || 0;
+
+    // Calculations
+    const sueldoBase = sueldoDiario * diasTrabajados;
+    const pagoExtras = horasExtra * 35;  // $35 per hour
+    const ajusteFaltas = faltas * sueldoDiario;  // Se suma
+    const descPrestamo = prestamo * 0.03;  // 3%
+    
+    const subtotalPercepciones = sueldoBase + pagoExtras + ajusteFaltas + bonoPuntualidad + bonoProduccion;
+    const totalDescuentos = descuentoTardes + descPrestamo + cajaAhorro;
+    const totalPagar = subtotalPercepciones - totalDescuentos;
+
+    // Display results
+    document.getElementById('result_sueldo_base').textContent = formatCurrency(sueldoBase);
+    document.getElementById('result_pago_extras').textContent = formatCurrency(pagoExtras);
+    document.getElementById('result_ajuste_faltas').textContent = formatCurrency(ajusteFaltas);
+    document.getElementById('result_bono_puntualidad').textContent = formatCurrency(bonoPuntualidad);
+    document.getElementById('result_bono_produccion').textContent = formatCurrency(bonoProduccion);
+    document.getElementById('result_subtotal_percepciones').textContent = formatCurrency(subtotalPercepciones);
+    
+    document.getElementById('result_desc_tardes').textContent = formatCurrency(descuentoTardes);
+    document.getElementById('result_desc_prestamo').textContent = formatCurrency(descPrestamo);
+    document.getElementById('result_caja_ahorro').textContent = formatCurrency(cajaAhorro);
+    document.getElementById('result_total_descuentos').textContent = formatCurrency(totalDescuentos);
+    
+    document.getElementById('result_total_pagar').textContent = formatCurrency(totalPagar);
+
+    // Show results
+    document.getElementById('quickCalcResult').style.display = 'block';
+    document.getElementById('quickCalcEmpty').style.display = 'none';
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: 'MXN'
+    }).format(amount || 0);
+}
+</script>
+{% endblock %}

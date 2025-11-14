@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema de Nóminas{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-4">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </h1>
+        <p class="lead">Vista general del sistema de nóminas</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4" id="statsCards">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Total Empleados</h6>
+                        <h2 class="card-title mb-0" id="totalEmpleados">0</h2>
+                    </div>
+                    <i class="bi bi-people-fill stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Nóminas Procesadas</h6>
+                        <h2 class="card-title mb-0" id="totalNominas">0</h2>
+                    </div>
+                    <i class="bi bi-file-earmark-check-fill stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Este Periodo</h6>
+                        <h2 class="card-title mb-0" id="nominasPeriodo">0</h2>
+                    </div>
+                    <i class="bi bi-calendar-check-fill stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Total a Pagar</h6>
+                        <h2 class="card-title mb-0" id="totalPagar">$0</h2>
+                    </div>
+                    <i class="bi bi-currency-dollar stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-lightning-fill"></i> Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="/nomina" class="btn btn-outline-primary w-100 py-3">
+                            <i class="bi bi-plus-circle-fill fs-3 d-block mb-2"></i>
+                            Nueva Nómina
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="/calculadora" class="btn btn-outline-success w-100 py-3">
+                            <i class="bi bi-calculator fs-3 d-block mb-2"></i>
+                            Calculadora Rápida
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="/reportes" class="btn btn-outline-info w-100 py-3">
+                            <i class="bi bi-file-earmark-bar-graph fs-3 d-block mb-2"></i>
+                            Ver Reportes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Payrolls -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Nóminas Recientes</h5>
+                <a href="/nomina" class="btn btn-sm btn-light">Ver Todas</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="recentNominas">
+                        <thead>
+                            <tr>
+                                <th>Empleado</th>
+                                <th>Periodo</th>
+                                <th>Fecha</th>
+                                <th class="text-end">Total a Pagar</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentNominasBody">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">
+                                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                    No hay nóminas registradas
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Load dashboard data
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+});
+
+async function loadDashboardData() {
+    try {
+        // Load employees count
+        const empleadosResponse = await fetch('/api/empleados');
+        const empleados = await empleadosResponse.json();
+        document.getElementById('totalEmpleados').textContent = empleados.length;
+        
+        // Load all payrolls
+        const nominasResponse = await fetch('/api/nominas');
+        const nominas = await nominasResponse.json();
+        document.getElementById('totalNominas').textContent = nominas.length;
+        
+        // Calculate current period stats
+        const currentDate = new Date();
+        const currentMonth = currentDate.toISOString().slice(0, 7);
+        const currentPeriodNominas = nominas.filter(n => n.periodo.startsWith(currentMonth));
+        document.getElementById('nominasPeriodo').textContent = currentPeriodNominas.length;
+        
+        // Calculate total to pay for current period
+        const totalPagar = currentPeriodNominas.reduce((sum, n) => sum + n.total_pagar, 0);
+        document.getElementById('totalPagar').textContent = formatCurrency(totalPagar);
+        
+        // Display recent payrolls (last 5)
+        displayRecentNominas(nominas.slice(0, 5));
+        
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        showError('Error al cargar los datos del dashboard');
+    }
+}
+
+function displayRecentNominas(nominas) {
+    const tbody = document.getElementById('recentNominasBody');
+    
+    if (nominas.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                    No hay nóminas registradas
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = nominas.map(nomina => `
+        <tr>
+            <td><strong>${nomina.empleado_nombre || 'N/A'}</strong></td>
+            <td>${nomina.periodo}</td>
+            <td>${formatDate(nomina.fecha_calculo)}</td>
+            <td class="text-end"><strong>${formatCurrency(nomina.total_pagar)}</strong></td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary" onclick="viewNomina(${nomina.id})">
+                    <i class="bi bi-eye"></i>
+                </button>
+                <a href="/api/reportes/pdf/${nomina.id}" class="btn btn-sm btn-outline-danger" target="_blank">
+                    <i class="bi bi-file-pdf"></i>
+                </a>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function viewNomina(id) {
+    window.location.href = `/nomina?id=${id}`;
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: 'MXN'
+    }).format(amount);
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-MX', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+function showError(message) {
+    alert(message);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes - Sistema de Nóminas{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-4">
+            <i class="bi bi-file-earmark-bar-graph-fill"></i> Reportes
+        </h1>
+        <p class="lead">Generar y exportar reportes de nóminas</p>
+    </div>
+</div>
+
+<!-- Export Options -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-file-pdf"></i> Exportar a PDF</h5>
+            </div>
+            <div class="card-body">
+                <p>Generar reportes individuales en formato PDF para cada nómina.</p>
+                <div class="mb-3">
+                    <label class="form-label">Seleccionar Periodo</label>
+                    <select class="form-select" id="pdfPeriodSelect">
+                        <option value="">Todos los periodos</option>
+                    </select>
+                </div>
+                <div id="pdfNominasList" class="list-group mb-3">
+                    <div class="text-center text-muted py-3">
+                        Seleccione un periodo para ver las nóminas
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-file-excel"></i> Exportar a Excel</h5>
+            </div>
+            <div class="card-body">
+                <p>Generar reporte consolidado en formato Excel con todas las nóminas.</p>
+                <div class="mb-3">
+                    <label class="form-label">Seleccionar Periodo</label>
+                    <select class="form-select" id="excelPeriodSelect">
+                        <option value="">Todos los periodos</option>
+                    </select>
+                </div>
+                <button class="btn btn-success w-100" onclick="exportToExcel()">
+                    <i class="bi bi-download"></i> Descargar Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Report -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-bar-chart-fill"></i> Resumen por Periodo</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Seleccionar Periodo</label>
+                        <select class="form-select" id="summaryPeriodSelect">
+                            <option value="">Seleccione un periodo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-info" onclick="loadSummary()">
+                            <i class="bi bi-search"></i> Generar Resumen
+                        </button>
+                    </div>
+                </div>
+
+                <div id="summaryResults" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h6>Total Empleados</h6>
+                                    <h2 id="summary_total_empleados">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h6>Sueldo Base</h6>
+                                    <h4 id="summary_sueldo_base">$0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h6>Total Bonos</h6>
+                                    <h4 id="summary_total_bonos">$0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h6>Total Descuentos</h6>
+                                    <h4 id="summary_total_descuentos">$0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5>TOTAL A PAGAR</h5>
+                                    <h1 class="text-success" id="summary_total_pagar">$0.00</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics by Employee -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-people-fill"></i> Estadísticas por Empleado</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Seleccionar Empleado</label>
+                        <select class="form-select" id="statsEmpleadoSelect">
+                            <option value="">Seleccione un empleado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-secondary" onclick="loadEmployeeStats()">
+                            <i class="bi bi-search"></i> Ver Estadísticas
+                        </button>
+                    </div>
+                </div>
+
+                <div id="employeeStatsResults" style="display: none;">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Periodo</th>
+                                    <th>Días Trab.</th>
+                                    <th>Hrs Extra</th>
+                                    <th>Bonos</th>
+                                    <th>Descuentos</th>
+                                    <th class="text-end">Total Pagado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeeStatsTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadPeriodos();
+    loadEmpleadosForStats();
+});
+
+async function loadPeriodos() {
+    try {
+        const response = await fetch('/api/periodos');
+        const periodos = await response.json();
+        
+        const selects = ['pdfPeriodSelect', 'excelPeriodSelect', 'summaryPeriodSelect'];
+        selects.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            select.innerHTML = (selectId === 'summaryPeriodSelect' ? '<option value="">Seleccione un periodo</option>' : '<option value="">Todos los periodos</option>') +
+                periodos.map(p => `<option value="${p}">${p}</option>`).join('');
+        });
+        
+        // Setup period change handler for PDF list
+        document.getElementById('pdfPeriodSelect').addEventListener('change', loadPDFNominas);
+        
+        // Load first period by default
+        if (periodos.length > 0) {
+            document.getElementById('pdfPeriodSelect').value = periodos[0];
+            loadPDFNominas();
+        }
+    } catch (error) {
+        console.error('Error loading periodos:', error);
+    }
+}
+
+async function loadPDFNominas() {
+    const periodo = document.getElementById('pdfPeriodSelect').value;
+    const container = document.getElementById('pdfNominasList');
+    
+    try {
+        let url = '/api/nominas';
+        if (periodo) url += `?periodo=${periodo}`;
+        
+        const response = await fetch(url);
+        const nominas = await response.json();
+        
+        if (nominas.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted py-3">No hay nóminas para este periodo</div>';
+            return;
+        }
+        
+        container.innerHTML = nominas.map(nom => `
+            <a href="/api/reportes/pdf/${nom.id}" target="_blank" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">${nom.empleado_nombre || 'N/A'}</h6>
+                    <small>${formatCurrency(nom.total_pagar)}</small>
+                </div>
+                <small class="text-muted">${nom.periodo}</small>
+            </a>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading PDF nominas:', error);
+        container.innerHTML = '<div class="text-center text-danger py-3">Error al cargar nóminas</div>';
+    }
+}
+
+async function exportToExcel() {
+    const periodo = document.getElementById('excelPeriodSelect').value;
+    let url = '/api/reportes/excel';
+    if (periodo) url += `?periodo=${periodo}`;
+    
+    window.open(url, '_blank');
+}
+
+async function loadSummary() {
+    const periodo = document.getElementById('summaryPeriodSelect').value;
+    if (!periodo) {
+        alert('Por favor seleccione un periodo');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/reportes/resumen?periodo=${periodo}`);
+        const summary = await response.json();
+        
+        document.getElementById('summary_total_empleados').textContent = summary.total_empleados;
+        document.getElementById('summary_sueldo_base').textContent = formatCurrency(summary.total_sueldo_base);
+        document.getElementById('summary_total_bonos').textContent = formatCurrency(summary.total_bonos);
+        document.getElementById('summary_total_descuentos').textContent = formatCurrency(summary.total_descuentos);
+        document.getElementById('summary_total_pagar').textContent = formatCurrency(summary.total_pagar);
+        
+        document.getElementById('summaryResults').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading summary:', error);
+        alert('Error al cargar el resumen');
+    }
+}
+
+async function loadEmpleadosForStats() {
+    try {
+        const response = await fetch('/api/empleados');
+        const empleados = await response.json();
+        
+        const select = document.getElementById('statsEmpleadoSelect');
+        select.innerHTML = '<option value="">Seleccione un empleado</option>' +
+            empleados.map(emp => `<option value="${emp.id}">${emp.nombre}</option>`).join('');
+    } catch (error) {
+        console.error('Error loading empleados:', error);
+    }
+}
+
+async function loadEmployeeStats() {
+    const empleadoId = document.getElementById('statsEmpleadoSelect').value;
+    if (!empleadoId) {
+        alert('Por favor seleccione un empleado');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/nominas?empleado_id=${empleadoId}`);
+        const nominas = await response.json();
+        
+        const tbody = document.getElementById('employeeStatsTableBody');
+        
+        if (nominas.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No hay nóminas para este empleado</td></tr>';
+        } else {
+            tbody.innerHTML = nominas.map(nom => `
+                <tr>
+                    <td>${nom.periodo}</td>
+                    <td>${nom.dias_trabajados}</td>
+                    <td>${nom.horas_extra} hrs</td>
+                    <td>${formatCurrency(nom.total_bonos)}</td>
+                    <td class="text-danger">${formatCurrency(nom.total_descuentos)}</td>
+                    <td class="text-end"><strong>${formatCurrency(nom.total_pagar)}</strong></td>
+                </tr>
+            `).join('');
+        }
+        
+        document.getElementById('employeeStatsResults').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading employee stats:', error);
+        alert('Error al cargar estadísticas');
+    }
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: 'MXN'
+    }).format(amount || 0);
+}
+</script>
+{% endblock %}
