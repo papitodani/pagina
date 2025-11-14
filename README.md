@@ -90,6 +90,15 @@ pagina/
    ```
 
 4. **Ejecutar la aplicación**:
+   
+   **Modo desarrollo** (con debug):
+   ```bash
+   export FLASK_DEBUG=1  # En Linux/Mac
+   # o en Windows: set FLASK_DEBUG=1
+   python app.py
+   ```
+   
+   **Modo producción** (sin debug):
    ```bash
    python app.py
    ```
@@ -98,6 +107,17 @@ pagina/
    ```
    http://localhost:5000
    ```
+
+### ⚠️ Importante - Producción
+
+Para desplegar en producción, **NO** uses `python app.py`. En su lugar, usa un servidor WSGI como Gunicorn:
+
+```bash
+pip install gunicorn
+gunicorn -w 4 -b 0.0.0.0:5000 app:app
+```
+
+**Nunca habilites el modo debug en producción** - esto expone información sensible y puede permitir ejecución remota de código.
 
 ## 📱 Uso de la Aplicación
 
